@@ -2,8 +2,10 @@ import java.io.*;
 
 public class BackupFile {
 
+	String name;
 	File fileLocation;
 	File backupLocation;
+	String[] backupLocations;
 
 	public BackupFile(File file, File backupLocation) {
 		this.fileLocation = file;
