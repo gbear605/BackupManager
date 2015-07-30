@@ -19,7 +19,7 @@ public class BackupManager extends Component {
 		window = new JFrame("Backup Manager " + version);
 		window.setSize(500, 300);
 		window.setLocationRelativeTo(null);
-		Pane = Window.getContentPane();
+		Pane = window.getContentPane();
 		insets = Pane.getInsets();
 		Pane.setLayout(null);
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE );
