@@ -1,16 +1,24 @@
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
+import com.google.gson.Gson;
+
 public class BackupManager implements ActionListener {
 
 	public final float version = 0.01f;
-	private static final long serialVersionUID = 1L;
-
+	public static Gson gson = new Gson();
+	
+	public File configFile;
+	public Configuration config;
+	
 	JFrame window;
 	Container Pane;
 	Insets insets;
@@ -104,8 +112,7 @@ public class BackupManager implements ActionListener {
 		controls.validate();
 		Pane.validate();
 		Pane.repaint();
-		return controls;
-		
+		return controls;	
 	}
 	
 	//gets icons
@@ -133,7 +140,28 @@ public class BackupManager implements ActionListener {
         }
 
     }
-	
+    
+    public Configuration readConfig() {
+    	String text = "";
+    	try {
+			text = new String(Files.readAllBytes(configFile.toPath()));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return gson.fromJson(text,Configuration.class);
+    }
+    
+    public void setConfig() {
+    	String json = gson.toJson(new Configuration()); 
+    	try {
+			FileWriter file = new FileWriter(configFile.getAbsolutePath());
+			file.write(json);
+			file.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    }
+    
 	public static void main(String[] args) {
 		new BackupManager();
 	}
