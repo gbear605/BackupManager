@@ -16,8 +16,8 @@ public class BackupManager implements ActionListener {
 	public final float version = 0.01f;
 	public static Gson gson = new Gson();
 	
-	public File configFile;
-	public Configuration config;
+	public static File configFile;
+	public static Configuration config;
 	
 	JFrame window;
 	Container Pane;
@@ -141,7 +141,7 @@ public class BackupManager implements ActionListener {
 
     }
     
-    public Configuration readConfig() {
+    public static Configuration readConfig() {
     	String text = "";
     	try {
 			text = new String(Files.readAllBytes(configFile.toPath()));
@@ -151,7 +151,7 @@ public class BackupManager implements ActionListener {
 		return gson.fromJson(text,Configuration.class);
     }
     
-    public void setConfig() {
+    public static void setConfig() {
     	String json = gson.toJson(new Configuration()); 
     	try {
 			FileWriter file = new FileWriter(configFile.getAbsolutePath());
@@ -163,6 +163,19 @@ public class BackupManager implements ActionListener {
     }
     
 	public static void main(String[] args) {
+		String workingDirectory;
+		String OS = (System.getProperty("os.name")).toUpperCase();
+		if (OS.contains("WIN")) {
+		    workingDirectory = System.getenv("AppData");
+		} else {
+		    workingDirectory = System.getProperty("user.home");
+		    workingDirectory += "/Library/Application Support";
+		}
+		workingDirectory += "/BackupManager";
+
+		configFile = new File(workingDirectory);
+		config = readConfig();
+		
 		new BackupManager();
 	}
 
