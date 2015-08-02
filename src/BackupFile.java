@@ -3,28 +3,28 @@ import java.io.*;
 public class BackupFile {
 
 	String name;
-	File fileLocation;
-	File backupLocation;
+	String fileLocation;
 	String[] backupLocations;
 
-	public BackupFile(File file, File backupLocation) {
-		this.fileLocation = file;
-		this.backupLocation = backupLocation;
+	public BackupFile(String _fileLocation, String _name) {
+		name = _name;
+		fileLocation = _fileLocation;
+		
 	}
 
-	public void setFileLocation(File file) {
-		this.fileLocation = file;
+	public void setFileLocation(String _fileLocation) {
+		fileLocation = _fileLocation;
 	}
 
-	public File getFileLocation() {
-		return this.fileLocation;
+	public String getFileLocation() {
+		return fileLocation;
 	}
 
-	public void setBackupLocation(File backupLocation) {
-		this.backupLocation = backupLocation;
+	public void setBackupLocation() {
+
 	}
 
 	public File getBackupLocation() {
-		return this.backupLocation;
+		return null;
 	}	
 }
