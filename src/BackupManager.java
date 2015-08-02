@@ -8,6 +8,7 @@ import java.nio.file.Files;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.border.Border;
 
 import com.google.gson.Gson;
 
@@ -39,13 +40,11 @@ public class BackupManager implements ActionListener {
 		window.setLocationRelativeTo(null);
 		Pane = window.getContentPane();
 		insets = Pane.getInsets();
-		//Pane.setLayout(null);
-		//Pane.setLayout(new GridLayout(1,2));
+		Pane.setLayout(new GridLayout(3,3));
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE );
 		window.setVisible (true);
 		window.setResizable(false);
 		
-		//adds control panel to pane
 		Pane.add(createControlPanel());
 
 		//handles closing
@@ -61,68 +60,44 @@ public class BackupManager implements ActionListener {
 	}
 
 	//creates control panel
-	private JPanel createControlPanel() 
+	public JPanel createControlPanel() 
 	{
 	
 		//backup button
-		JButton backup = new JButton();		
-		backup.setIcon(getIcon("Resources/Backup.png"));
-		backup.setMargin(new Insets(0, 0, 0, 0));
-		backup.setBorder(null);
-		int buttonSize = backup.getPreferredSize().width;
-		backup.setBounds(0, insets.top + 5, buttonSize, buttonSize);
+		JButton backup = new JButton("backup");		
 	    backup.setActionCommand("backup");
 		backup.addActionListener(this);
-
+		
 		//revert button
-		JButton revert = new JButton();
-		revert.setIcon(getIcon("Resources/Revert.png"));
-		revert.setMargin(new Insets(0, 0, 0, 0));
-		revert.setBorder(null);
-		revert.setBounds(buttonSize, insets.top + 5, buttonSize, buttonSize);
-	    revert.setActionCommand("revert");
-		revert.addActionListener(this);
-
+		JButton revert = new JButton("revert");		
+	    backup.setActionCommand("revert");
+		backup.addActionListener(this);
+		
 		//add button
-		JButton addItem = new JButton();
-		addItem.setIcon(getIcon("Resources/AddToList.png"));
-		addItem.setMargin(new Insets(0, 0, 0, 0));
-		addItem.setBorder(null);
-		addItem.setBounds(buttonSize * 2, insets.top + 5, buttonSize, buttonSize);
-	    addItem.setActionCommand("add");
-		addItem.addActionListener(this);
+		JButton add = new JButton("add");		
+	    backup.setActionCommand("add");
+		backup.addActionListener(this);
 		
 		//remove button
-		JButton removeItem = new JButton();
-		removeItem.setIcon(getIcon("Resources/RemoveFromList.png"));
-		//removeItem.setMargin(new Insets(0, 0, 0, 0));
-		//removeItem.setBorder(null);
-		//removeItem.setBounds(buttonSize * 3, insets.top + 5, buttonSize, buttonSize);
-	    removeItem.setActionCommand("remove");
-		removeItem.addActionListener(this);
-		
+		JButton remove = new JButton("remove");		
+	    backup.setActionCommand("remove");
+		backup.addActionListener(this);
+
+
 		//puts buttons into a container
-		JPanel controls = new JPanel(new GridLayout(1, 4));
+		JPanel controls = new JPanel();
+		controls.setLayout(new GridLayout(1, 4));
+		controls.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 		controls.add(backup);
 		controls.add(revert);
-		controls.add(addItem);
-		controls.add(removeItem);
-		controls.setBorder(BorderFactory.createLineBorder(Color.black));       
-		controls.setBounds(insets.left + 5, insets.top + 5, buttonSize * 4, buttonSize);
-		controls.validate();
-		Pane.validate();
-		Pane.repaint();
+		controls.add(add);
+		controls.add(remove);
+
+
 		return controls;	
 	}
 	
-	//gets icons
-	public Icon getIcon(String i){
-		try {
-			return new ImageIcon(ImageIO.read(getClass().getResource(i)));
-		} catch (IOException e) {
-			return null;
-		}
-	}
+
 	
 	//add logic for buttons in here
     public void actionPerformed(ActionEvent e) {
@@ -174,7 +149,7 @@ public class BackupManager implements ActionListener {
 		workingDirectory += "/BackupManager";
 
 		configFile = new File(workingDirectory);
-		config = readConfig();
+		//config = readConfig();
 		
 		new BackupManager();
 	}
