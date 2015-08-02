@@ -43,7 +43,6 @@ public class BackupManager implements ActionListener {
 		insets = Pane.getInsets();
 		Pane.setLayout(new GridLayout(3,1));
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE );
-		window.setVisible (true);
 		window.setResizable(false);
 		
 		//TEST add item to list
@@ -60,6 +59,7 @@ public class BackupManager implements ActionListener {
 				window.dispose();
 			}
 		});
+		window.setVisible (true);
 
 
 	}
