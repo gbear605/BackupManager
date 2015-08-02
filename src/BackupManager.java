@@ -22,7 +22,6 @@ public class BackupManager implements ActionListener {
 	
 	JFrame window;
 	Container Pane;
-	Insets insets;
 	JPanel backupItems;
 	BackupFile[] backups = new BackupFile[50];
 
@@ -40,7 +39,7 @@ public class BackupManager implements ActionListener {
 		window.setSize(500, 300);
 		window.setLocationRelativeTo(null);
 		Pane = window.getContentPane();
-		insets = Pane.getInsets();
+
 		Pane.setLayout(new GridLayout(3,1));
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE );
 		window.setResizable(false);
@@ -71,43 +70,123 @@ public class BackupManager implements ActionListener {
 		return listPanel;
 	}
 	
-	public void createAddBackupWindow()
+	public void createAddBackupNameWindow()
 	{
-		JFrame addWindow = new JFrame("Add backup");
-		Container addPane = new Container();
-		JPanel addPanel = new JPanel();
+		JFrame nameWindow = new JFrame("Name backup");
+		Container namePane = new Container();
+		JButton setName, cancelName;
+		JTextPane nameInput = new JTextPane();
 		
 		//initialise window and disable main window
-		addWindow.setSize(500, 300);
-		addWindow.setLocationRelativeTo(null);
-		addWindow.setVisible(true);
-		window.setEnabled(false);
+		nameWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE );
+		nameWindow.setSize(250, 70);
+		nameWindow.setResizable(false);
+		nameWindow.setLocationRelativeTo(null);
+		nameWindow.setVisible(true);
+		window.setEnabled(false);		
+		namePane = nameWindow.getContentPane();
 		
-		//initialise container
-		addPane.setLayout(new GridLayout(3,1));
-		addPane = addWindow.getContentPane();
-
-		//add border and buttons
-		addPanel.setBorder(BorderFactory.createLineBorder(Color.black));		
-		addPanel.add(new JButton("test"));
+		//layout manager
+		namePane.setLayout(new GridBagLayout());
+		GridBagConstraints gridBag = new GridBagConstraints();
 		
-		//add border with buttons to main container
-		addPane.add(addPanel);
+		//add components
+		//Done button
+		gridBag.fill = GridBagConstraints.HORIZONTAL;
+		gridBag.gridx = 0;
+		gridBag.gridy = 1;
+		gridBag.weightx = 0.5;
+		setName = new JButton("Done");
+		namePane.add(setName, gridBag);
 
+		//Cancel button
+		gridBag.gridx = 1;
+		gridBag.gridy = 1;
+		gridBag.weightx = 0.5;
+		cancelName = new JButton("Cancel");
+		namePane.add(cancelName, gridBag);
+		
+		//Text Pane
+		gridBag.gridwidth = 2;
+		gridBag.gridx = 0;
+		gridBag.gridy = 0;
+		gridBag.weightx = 0;
+		nameInput.setBorder(BorderFactory.createLineBorder(Color.black));
+		namePane.add(nameInput, gridBag);
+		
+		//handles the button inputs
+		setName.addActionListener(new ActionListener() {
+		      public void actionPerformed(ActionEvent e) {
+		    	  nameWindow.dispose();
+		    	  createBackupFileChooserWindow(nameInput.getText());
+		        }
+		      });
+		cancelName.addActionListener(new ActionListener() {
+		      public void actionPerformed(ActionEvent e) {
+					window.setEnabled(true);
+					nameWindow.dispose();
+		        }
+		      });
+
+
+
+			
 		//close this window and return focus back to the main
-		addWindow.addWindowListener(new WindowAdapter(){
+		nameWindow.addWindowListener(new WindowAdapter(){
 			@Override
 			public void windowClosing(WindowEvent e) {
 				window.setEnabled(true);
-				addWindow.dispose();
+				nameWindow.dispose();
 			}
 		});
 	}
 	
+	public void createBackupFileChooserWindow(String fileName)
+	{
+		JFrame fileWindow = new JFrame("Find file to backup");
+		Container filePane = new Container();
+		JFileChooser fileChooser = new JFileChooser();
+		
+		//initialise window and disable main window
+		fileWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE );
+		fileWindow.setSize(500, 300);
+		fileWindow.setResizable(false);
+		fileWindow.setLocationRelativeTo(null);
+		fileWindow.setVisible(true);
+		window.setEnabled(false);		
+		filePane = fileWindow.getContentPane();
+		
+		fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+		fileChooser.setApproveButtonText("Backup");
+		
+  		//add file chooser to the window
+  		filePane.add(fileChooser);
+		
+		
+		//handles the buttons on the file chooser
+				fileChooser.addActionListener(new ActionListener() {
+				      public void actionPerformed(ActionEvent e) {
+				          if (e.getActionCommand() == "ApproveSelection")
+				          {
+				        	  File addFile = fileChooser.getSelectedFile();
+				        	  System.out.println(addFile.getName());
+				          }
+				          else if (e.getActionCommand() == "CancelSelection")
+				          {
+								window.setEnabled(true);
+								fileWindow.dispose();
+				          }
+
+
+				        }
+				      });
+	}
+	
+	
+
 	//creates control panel
 	public JPanel createControlPanel() 
-	{
-	
+	{	
 		//backup button
 		JButton backup = new JButton("backup");		
 	    backup.setActionCommand("backup");
@@ -128,7 +207,6 @@ public class BackupManager implements ActionListener {
 		remove.setActionCommand("remove");
 		remove.addActionListener(this);
 
-
 		//puts buttons into a container
 		JPanel controls = new JPanel();
 		controls.setLayout(new GridLayout(1, 4));
@@ -137,8 +215,6 @@ public class BackupManager implements ActionListener {
 		controls.add(revert);
 		controls.add(add);
 		controls.add(remove);
-
-
 		return controls;	
 	}
 	
@@ -146,20 +222,19 @@ public class BackupManager implements ActionListener {
 	
 	//add logic for buttons in here
     public void actionPerformed(ActionEvent e) {
-        if ("backup".equals(e.getActionCommand())) {
+        if (e.getActionCommand() == "backup") {
         	System.out.println(e.getActionCommand());
         }
-        if ("revert".equals(e.getActionCommand())) {
+        else if (e.getActionCommand() == "revert") {
         	System.out.println(e.getActionCommand());
         }
-        if ("add".equals(e.getActionCommand())) {
+        else if (e.getActionCommand() == "add") {
         	System.out.println(e.getActionCommand());
-        	createAddBackupWindow();
+        	createAddBackupNameWindow();
         }
-        if ("remove".equals(e.getActionCommand())) {
+        else if (e.getActionCommand() == "remove") {
         	System.out.println(e.getActionCommand());
         }
-
     }
     
     public static Configuration readConfig() {
