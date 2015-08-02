@@ -70,18 +70,18 @@ public class BackupManager implements ActionListener {
 		
 		//revert button
 		JButton revert = new JButton("revert");		
-	    backup.setActionCommand("revert");
-		backup.addActionListener(this);
+	    revert.setActionCommand("revert");
+		revert.addActionListener(this);
 		
 		//add button
 		JButton add = new JButton("add");		
-	    backup.setActionCommand("add");
-		backup.addActionListener(this);
+	    add.setActionCommand("add");
+		add.addActionListener(this);
 		
 		//remove button
 		JButton remove = new JButton("remove");		
-	    backup.setActionCommand("remove");
-		backup.addActionListener(this);
+		remove.setActionCommand("remove");
+		remove.addActionListener(this);
 
 
 		//puts buttons into a container
