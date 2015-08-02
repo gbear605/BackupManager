@@ -86,30 +86,29 @@ public class BackupManager implements ActionListener {
 		
 		for(BackupFile file : backups)
 		{
-			listPanel.add(createListItem(file.name));
+			listPanel.add(createListItem(file.name, file.fileLocation));
 		}
 		
 		return listPanel;
 	}
 	
-	public Component createListItem(String _name)
+	public Component createListItem(String _name, String _fileLocation)
 	{
 		JLabel name = new JLabel(_name);
-	    Box  createBox = Box.createHorizontalBox();
-	    
-	    name.setBorder(new EmptyBorder(5, 5, 5, 5));
+	    Box createBox = Box.createHorizontalBox();
 
+	    //sets up the name label
+	    name.setBorder(new EmptyBorder(5, 5, 5, 0));
+	    name.setPreferredSize(new Dimension(150, 0));
+
+	    //adds to the box and makes sure everything has space
 		createBox.add(name);
-
+		createBox.add(new JLabel(_fileLocation));
 	    createBox.add(Box.createHorizontalGlue());
-	    createBox.add(new JButton("bak"));
+	    createBox.add(new JButton("bac"));
 	    createBox.add(new JButton("rev"));
 	    createBox.add(new JCheckBox());
-	    createBox.setBorder(BorderFactory.createCompoundBorder(new EmptyBorder(5, 2, 5, 5), new BevelBorder(0, Color.black, Color.gray)));
-
-
-
-
+	    createBox.setBorder(BorderFactory.createCompoundBorder(new EmptyBorder(5, 5, 0, 5), new BevelBorder(1, Color.black, Color.gray)));
 		return createBox;
 	}
 	
