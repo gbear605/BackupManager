@@ -24,6 +24,7 @@ public class BackupManager implements ActionListener {
 	Container Pane;
 	Insets insets;
 	JPanel backupItems;
+	BackupFile[] backups = new BackupFile[50];
 
 	public BackupManager() {
 		
@@ -40,12 +41,16 @@ public class BackupManager implements ActionListener {
 		window.setLocationRelativeTo(null);
 		Pane = window.getContentPane();
 		insets = Pane.getInsets();
-		Pane.setLayout(new GridLayout(3,3));
+		Pane.setLayout(new GridLayout(3,1));
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE );
 		window.setVisible (true);
 		window.setResizable(false);
 		
+		//TEST add item to list
+		
 		Pane.add(createControlPanel());
+		Pane.add(createItemList());
+		window.pack();
 
 		//handles closing
 		window.addWindowListener(new WindowAdapter(){
@@ -59,6 +64,46 @@ public class BackupManager implements ActionListener {
 
 	}
 
+	public JPanel createItemList()
+	{
+		JPanel listPanel = new JPanel();
+		listPanel.setBorder(BorderFactory.createLineBorder(Color.black));
+		return listPanel;
+	}
+	
+	public void createAddBackupWindow()
+	{
+		JFrame addWindow = new JFrame("Add backup");
+		Container addPane = new Container();
+		JPanel addPanel = new JPanel();
+		
+		//initialise window and disable main window
+		addWindow.setSize(500, 300);
+		addWindow.setLocationRelativeTo(null);
+		addWindow.setVisible(true);
+		window.setEnabled(false);
+		
+		//initialise container
+		addPane.setLayout(new GridLayout(3,1));
+		addPane = addWindow.getContentPane();
+
+		//add border and buttons
+		addPanel.setBorder(BorderFactory.createLineBorder(Color.black));		
+		addPanel.add(new JButton("test"));
+		
+		//add border with buttons to main container
+		addPane.add(addPanel);
+
+		//close this window and return focus back to the main
+		addWindow.addWindowListener(new WindowAdapter(){
+			@Override
+			public void windowClosing(WindowEvent e) {
+				window.setEnabled(true);
+				addWindow.dispose();
+			}
+		});
+	}
+	
 	//creates control panel
 	public JPanel createControlPanel() 
 	{
@@ -109,6 +154,7 @@ public class BackupManager implements ActionListener {
         }
         if ("add".equals(e.getActionCommand())) {
         	System.out.println(e.getActionCommand());
+        	createAddBackupWindow();
         }
         if ("remove".equals(e.getActionCommand())) {
         	System.out.println(e.getActionCommand());
