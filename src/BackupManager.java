@@ -423,7 +423,7 @@ public class BackupManager implements ActionListener {
 			}
 		}
 		fileChooser.setApproveButtonText("Backup");
-		fileChooser.setCurrentDirectory(new File(Configuration.defaultBackupLocation));
+		fileChooser.setCurrentDirectory(new File(config.defaultBackupLocation));
   		//add file chooser to the window
   		fileWindow.add(fileChooser);
 		
@@ -470,7 +470,7 @@ public class BackupManager implements ActionListener {
 			backups.get(id).addBackupLocation(file);
 	    	createItemOutputs(id);
 		} else if (function == 4){
-			Configuration.defaultBackupLocation = file.getAbsolutePath();
+			config.defaultBackupLocation = file.getAbsolutePath();
         	createSettingsWindow();
 		} else if (function == 5){
 			System.out.println(file);
@@ -502,7 +502,7 @@ public class BackupManager implements ActionListener {
 		padding.add(new JLabel("Default path :"));
 		//file path textbox
 		JTextPane filePath = new JTextPane();
-		filePath.setText(Configuration.defaultBackupLocation);
+		filePath.setText(config.defaultBackupLocation);
 		gridBag.weightx = 1;
 		gridBag.gridx = 1;
 		gridBag.gridwidth = 3;
@@ -514,7 +514,7 @@ public class BackupManager implements ActionListener {
 	        	settingsWindow.dispose();
 	        	
 	        	createFileChooserWindow(4, null, 0);
-	        	filePath.setText(Configuration.defaultBackupLocation);
+	        	filePath.setText(config.defaultBackupLocation);
 
 	        		        	
 	          }
@@ -679,21 +679,20 @@ public class BackupManager implements ActionListener {
         
     }
     
-    public static Configuration readConfig() {
+    public static void readConfig() {
     	String text = "";
     	try {
 			text = new String(Files.readAllBytes(configFile.toPath()));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		return gson.fromJson(text,Configuration.class);
+		config = gson.fromJson(text,Configuration.class);
     }
     
     public static void setConfig() {
-    	String json = gson.toJson(new Configuration()); 
     	try {
 			FileWriter file = new FileWriter(configFile.getAbsolutePath());
-			file.write(json);
+			file.write(gson.toJson(config));
 			file.close();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -713,6 +712,8 @@ public class BackupManager implements ActionListener {
 
 		configFile = new File(workingDirectory);
 		//config = readConfig();
+		config = new Configuration();
+		config.defaultBackupLocation = "C:\\Users";
 		
 		new BackupManager();
 	}

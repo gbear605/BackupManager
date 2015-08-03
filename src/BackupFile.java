@@ -11,7 +11,7 @@ public class BackupFile {
 	public BackupFile(File _fileLocation, String _name) {
 		name = _name;
 		fileLocation = _fileLocation;
-		backupLocations.add(new File(Configuration.defaultBackupLocation));
+		backupLocations.add(new File(BackupManager.config.defaultBackupLocation));
 		
 		
 	}

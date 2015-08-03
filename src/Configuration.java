@@ -2,6 +2,6 @@
 
 public class Configuration {
 
-	public static BackupFile[] filesToBackup;
-	public static String defaultBackupLocation = "C:\\Users";
+	public BackupFile[] filesToBackup;
+	public String defaultBackupLocation;
 }
