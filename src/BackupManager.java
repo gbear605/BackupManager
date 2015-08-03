@@ -429,8 +429,12 @@ public class BackupManager implements ActionListener {
 				fileWindow.setTitle("Change file or folder to backup");
 			} else if (function == 3){
 				fileWindow.setTitle("Add folder to backup to");
-			} else if (function == 5){
-				
+			} else if (function == 6){
+				FileFilter bkpmFile = new FileNameExtensionFilter(
+					    "bkpm files", "bkpm");
+				fileWindow.setTitle("Save backup file");
+				fileChooser.addChoosableFileFilter(bkpmFile);
+				fileChooser.setFileFilter(bkpmFile);
 			}
 		}
 		fileChooser.setApproveButtonText("Backup");
@@ -472,6 +476,7 @@ public class BackupManager implements ActionListener {
 		//function 3 = add new output to existing item
 		//function 4 = set default path
 		//function 5 = open backups file
+		//function 6 = save backups file
 		
 		if (function == 1){
 			backups.add(new BackupFile(file, name));
@@ -486,7 +491,10 @@ public class BackupManager implements ActionListener {
         	createSettingsWindow();
 		} else if (function == 5){
 			System.out.println(file);
+		} else if (function == 6){
+			System.out.println(file + "\\example.bkpm");
 		}
+		
 		
 		createGUI();
 	}
@@ -698,8 +706,10 @@ public class BackupManager implements ActionListener {
         if (e.getActionCommand() == "fileOpen") {
         	createFileChooserWindow(5, null, 0);
         } else if (e.getActionCommand() == "fileSave") {
+        	
         	System.out.println(e.getActionCommand());
         } else if (e.getActionCommand() == "fileSaveAs") {
+        	createFileChooserWindow(6, null, 0);
         	System.out.println(e.getActionCommand());
         } else if (e.getActionCommand() == "fileSettings") {
         	createSettingsWindow();
