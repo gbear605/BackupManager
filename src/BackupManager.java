@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 
 import javax.swing.*;
@@ -23,8 +24,8 @@ public class BackupManager implements ActionListener {
 	public static Configuration config;
 	
 	public static String fileSearchLocation;
-	public static String sep; //Either / or \
 	public static String defaultLocation; 
+	public static String settingsLocation;
 	
 	JFrame window;
 	Container Pane;
@@ -492,9 +493,9 @@ public class BackupManager implements ActionListener {
 			config.defaultBackupLocation = file.getAbsolutePath();
         	createSettingsWindow();
 		} else if (function == 5){
-			System.out.println(file);
+			readConfig("");
 		} else if (function == 6){
-			System.out.println(file + "\\example.bkpm");
+			setConfig();
 		}
 		
 		
@@ -553,8 +554,8 @@ public class BackupManager implements ActionListener {
 				window.setEnabled(true);
 				window.toFront();
 				String path = filePath.getText();
-				if(!path.substring(path.length()-1, path.length()).equals(sep)) {
-					config.defaultBackupLocation = path + sep;
+				if(!path.substring(path.length()-1, path.length()).equals(File.separator)) {
+					config.defaultBackupLocation = path + File.separator;
 				}
 				else { 
 					config.defaultBackupLocation = path;
@@ -726,19 +727,35 @@ public class BackupManager implements ActionListener {
         
     }
     
-    public static void readConfig() {
-    	String text = "";
-    	try {
-			text = new String(Files.readAllBytes(configFile.toPath()));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		config = gson.fromJson(text,Configuration.class);
+    public static void readConfig(String defaultBackupLocation) {
+    	String text = "{}";
+    	if(configFile.exists()) {
+	    	try {
+				text = new String(Files.readAllBytes(configFile.toPath()));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+	    	config = gson.fromJson(text,Configuration.class);
+    	} else {
+    		config = new Configuration();
+    		config.defaultBackupLocation = defaultBackupLocation;	
+    		setConfig();
+
+    	}
     }
     
     public static void setConfig() {
     	try {
-			FileWriter file = new FileWriter(configFile.getAbsolutePath());
+    		File settingsFile = new File(configFile.getAbsolutePath());
+    		System.out.println("here");
+    		if(!new File(settingsLocation).exists()) {
+    			Files.createDirectory(new File(settingsLocation).toPath());
+    		}
+    		if(!settingsFile.exists()) {
+    			Files.createFile(settingsFile.toPath());
+    			System.out.println("made new file");
+    		}
+			FileWriter file = new FileWriter(settingsFile);
 			file.write(gson.toJson(config));
 			file.close();
 		} catch (IOException e) {
@@ -746,24 +763,21 @@ public class BackupManager implements ActionListener {
 		}
     }
     
-	public static void main(String[] args) {
-		String workingDirectory;
+    public static void setDefaultLocations() {
 		String defaultBackupLocation;
 		String OS = (System.getProperty("os.name")).toUpperCase();
 		if (OS.contains("WIN")) {
-		    workingDirectory = System.getenv("AppData");
+		    settingsLocation = System.getenv("AppData");
 		    defaultBackupLocation = "C:\\Users";
 		    fileSearchLocation = "C:\\Users";
-		    sep = "\\";
 		} else {
-		    workingDirectory = System.getProperty("user.home");
-		    defaultBackupLocation = workingDirectory;
-		    fileSearchLocation = workingDirectory;
-		    workingDirectory += "/Library/Application Support";
-		    sep = "/";
+		    settingsLocation = System.getProperty("user.home");
+		    defaultBackupLocation = settingsLocation;
+		    fileSearchLocation = settingsLocation;
+		    settingsLocation += "/Library/Application Support";
 		}
-		workingDirectory += "/BackupManager";
-		defaultBackupLocation += "/BackupManager/";
+		settingsLocation += File.separator + "BackupManager" + File.separator;
+		defaultBackupLocation += File.separator + "BackupManager" + File.separator;
 		
 		File defaultLoc = new File(defaultBackupLocation);
 		if(defaultLoc.exists() && !defaultLoc.isDirectory()) {
@@ -773,12 +787,12 @@ public class BackupManager implements ActionListener {
 			defaultLoc.mkdir();
 		}
 		
-		configFile = new File(workingDirectory);
-		//config = readConfig();
-		config = new Configuration();
-		config.defaultBackupLocation = defaultBackupLocation;
-		System.out.println(config.defaultBackupLocation);
-		
+		configFile = new File(settingsLocation + "settings.bkpm");
+		readConfig(defaultBackupLocation);
+    }
+    
+	public static void main(String[] args) {
+		setDefaultLocations();
 		new BackupManager();
 	}
 
