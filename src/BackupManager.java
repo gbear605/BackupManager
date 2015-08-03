@@ -55,6 +55,7 @@ public class BackupManager implements ActionListener {
 		window.addWindowListener(new WindowAdapter(){
 			@Override
 			public void windowClosing(WindowEvent e) {
+				System.out.println(e.getWindow());
 				System.exit(0);
 				window.dispose();
 			}
@@ -64,6 +65,7 @@ public class BackupManager implements ActionListener {
 
 	}
 	
+	//main draw method for refreshing the GUI
 	public void createGUI()
 	{
 		Component[] comps = Pane.getComponents();
@@ -98,6 +100,7 @@ public class BackupManager implements ActionListener {
 		window.revalidate();
 	}
 	
+	//creates and populates the list
 	public Component createItemList(int offset)
 	{
 		Box listBox = Box.createVerticalBox();
@@ -116,6 +119,7 @@ public class BackupManager implements ActionListener {
 		return listBox;
 	}
 	
+	//creates the header for the list
 	public Component createListHeader()
 	{
 		Box headerBox = Box.createHorizontalBox();
@@ -142,6 +146,7 @@ public class BackupManager implements ActionListener {
 		return headerBox;
 	}
 	
+	//creates an item for the list
 	public Component createListItem(String _name, String _fileLocation, int count)
 	{
 		JLabel name = new JLabel(_name);
@@ -176,6 +181,7 @@ public class BackupManager implements ActionListener {
 		return createBox;
 	}
 	
+	//creates error pop-up with specified message
 	public void createErrorWindow(String error)
 	{
 		JFrame errorWindow = new JFrame("Error");
@@ -184,7 +190,7 @@ public class BackupManager implements ActionListener {
 		JLabel errorMessage = new JLabel(error);
 		
 		//initialise window and disable main window
-		errorWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE );
+		errorWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE );
 		errorWindow.setSize(250, 70);
 		errorWindow.setResizable(false);
 		errorWindow.setLocationRelativeTo(null);
@@ -209,8 +215,17 @@ public class BackupManager implements ActionListener {
 		errorPane.add(errorButton);
 
 		errorWindow.setVisible(true);
+		
+		//close this window and return focus back to the main
+		errorWindow.addWindowListener(new WindowAdapter(){
+			@Override
+			public void windowClosing(WindowEvent e) {
+				window.setEnabled(true);
+			}
+		});
 	}
 	
+	//creates a window for naming the new backup
 	public void createAddBackupNameWindow()
 	{
 		JFrame nameWindow = new JFrame("Name backup");
@@ -219,7 +234,7 @@ public class BackupManager implements ActionListener {
 		JTextPane nameInput = new JTextPane();
 		
 		//initialise window and disable main window
-		nameWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE );
+		nameWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE );
 		nameWindow.setSize(250, 70);
 		nameWindow.setResizable(false);
 		nameWindow.setLocationRelativeTo(null);
@@ -267,7 +282,6 @@ public class BackupManager implements ActionListener {
 		      @Override
 			public void actionPerformed(ActionEvent e) {
 					window.setEnabled(true);
-					nameWindow.dispose();
 		        }
 		      });
 
@@ -276,11 +290,11 @@ public class BackupManager implements ActionListener {
 			@Override
 			public void windowClosing(WindowEvent e) {
 				window.setEnabled(true);
-				nameWindow.dispose();
 			}
 		});
 	}
 	
+	//creates a filechooser
 	public void createBackupFileChooserWindow(String fileName)
 	{
 		JFrame fileWindow = new JFrame("Find file to backup");
@@ -288,7 +302,7 @@ public class BackupManager implements ActionListener {
 		JFileChooser fileChooser = new JFileChooser();
 		
 		//initialise window and disable main window
-		fileWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE );
+		fileWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE );
 		fileWindow.setSize(500, 300);
 		fileWindow.setResizable(false);
 		fileWindow.setLocationRelativeTo(null);
@@ -308,7 +322,6 @@ public class BackupManager implements ActionListener {
 			public void actionPerformed(ActionEvent e) {
 				if (e.getActionCommand() == "ApproveSelection")
 				{
-					//createListItem(fileChooser.getSelectedFile().getAbsolutePath(), fileName, backups.size());
 					backups.add(new BackupFile(fileChooser.getSelectedFile().getAbsolutePath(), fileName));
 					createGUI();
 
@@ -321,6 +334,13 @@ public class BackupManager implements ActionListener {
 	        	  	fileWindow.dispose();
 				}
 	        }
+		});
+		
+		fileWindow.addWindowListener(new WindowAdapter(){
+			@Override
+			public void windowClosing(WindowEvent e) {
+				window.setEnabled(true);
+			}
 		});
 	}
 	
@@ -368,7 +388,6 @@ public class BackupManager implements ActionListener {
         	System.out.println(e.getActionCommand());
         }
         else if (e.getActionCommand() == "add") {
-        	System.out.println(e.getActionCommand());
         	createAddBackupNameWindow();
         }
         else if (e.getActionCommand() == "remove") {
@@ -385,7 +404,6 @@ public class BackupManager implements ActionListener {
         	} else {
         		createErrorWindow("Nothing to delete");
         	}
-
         }
     }
     
