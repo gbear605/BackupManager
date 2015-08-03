@@ -31,8 +31,6 @@ public class BackupManager implements ActionListener {
 	Container Pane;
 	JPanel backupItems;
 	Boolean selectAll = false;
-	ArrayList<BackupFile> backups = new ArrayList<BackupFile>();
-	ArrayList<Boolean> checkboxStates = new ArrayList<Boolean>();
 
 	public BackupManager() {
 		
@@ -53,8 +51,8 @@ public class BackupManager implements ActionListener {
 		window.setResizable(false);
 		
 		
-		//ADD SAVE LOADING METHOD CALL HERE		
-
+		setDefaultLocations();
+		readConfig();
 		
 		createGUI();
 
@@ -115,9 +113,8 @@ public class BackupManager implements ActionListener {
 		boxBox.setBorder(BorderFactory.createCompoundBorder(new EmptyBorder(5, 5, 5, 5), new LineBorder(Color.BLACK)));
 		boxBox.add(createListHeader());
 
-		for(BackupFile file : backups)
+		for(BackupFile file : config.backups)
 		{
-			
 			listBox.add(createListItem(file.name, file.fileLocation.toString(), count));
 			count++;
 		}
@@ -147,8 +144,8 @@ public class BackupManager implements ActionListener {
 		headerCheckBox.setSelected(selectAll);
 		headerCheckBox.addItemListener(new ItemListener() {
 	        public void itemStateChanged(ItemEvent e) {
-	        	for(int i = checkboxStates.size() - 1; i >= 0; i-- ){
-		        	checkboxStates.set(i, headerCheckBox.isSelected());
+	        	for(int i = config.checkboxStates.size() - 1; i >= 0; i-- ){
+	        		config.checkboxStates.set(i, headerCheckBox.isSelected());
 		        	selectAll = headerCheckBox.isSelected();
 		        	createGUI();
 	        	}
@@ -177,14 +174,14 @@ public class BackupManager implements ActionListener {
 	    name.setBorder(new EmptyBorder(5, 5, 5, 0));
 	    name.setPreferredSize(new Dimension(100, 0));
 	    
-	    setDelete.setSelected(checkboxStates.get(count));
+	    setDelete.setSelected(config.checkboxStates.get(count));
 	    setDelete.addItemListener(new ItemListener() {
 	        public void itemStateChanged(ItemEvent e) {
 	        	if (setDelete.isSelected())
 	        	{
-	        		checkboxStates.set(count, true);
+	        		config.checkboxStates.set(count, true);
 	        	} else {
-	        		checkboxStates.set(count, false);
+	        		config.checkboxStates.set(count, false);
 	        	}
 	          }
 	        });
@@ -277,7 +274,7 @@ public class BackupManager implements ActionListener {
 		
 		outputAdd.addActionListener(new ActionListener() {
 	        public void actionPerformed(ActionEvent e) {
-	        	createFileChooserWindow(3, backups.get(id).name, id);
+	        	createFileChooserWindow(3, config.backups.get(id).name, id);
 	        	outputWindow.dispose();
 	        		        	
 	          }
@@ -288,10 +285,10 @@ public class BackupManager implements ActionListener {
 		outputPane.add(outputAdd);
 
 		
-		for (int i = 0; i < backups.get(id).backupLocations.size(); i++)
+		for (int i = 0; i < config.backups.get(id).backupLocations.size(); i++)
 		{
 			Box itemBox = Box.createHorizontalBox();
-			JLabel labelBox = new JLabel(backups.get(id).getBackupLocations().get(i).getAbsolutePath());
+			JLabel labelBox = new JLabel(config.backups.get(id).getBackupLocations().get(i).getAbsolutePath());
 			JButton removeButton = new JButton("Remove");
 			
 			int count = i;
@@ -301,7 +298,7 @@ public class BackupManager implements ActionListener {
 			itemBox.add(Box.createHorizontalGlue());
 			removeButton.addActionListener(new ActionListener() {
 		        public void actionPerformed(ActionEvent e) {
-		        	backups.get(id).backupLocations.remove(count);
+		        	config.backups.get(id).backupLocations.remove(count);
 		        	outputWindow.dispose();
 		        	window.toFront();
 		        	createItemOutputs(id);		        	
@@ -482,12 +479,12 @@ public class BackupManager implements ActionListener {
 		//function 6 = save backups file
 		
 		if (function == 1){
-			backups.add(new BackupFile(file, name));
-			checkboxStates.add(false);
+			config.backups.add(new BackupFile(file, name));
+			config.checkboxStates.add(false);
 		} else if (function == 2){
-			backups.get(id).setFileLocation(file);
+			config.backups.get(id).setFileLocation(file);
 		} else if (function == 3){
-			backups.get(id).addBackupLocation(file);
+			config.backups.get(id).addBackupLocation(file);
 	    	createItemOutputs(id);
 		} else if (function == 4){
 			config.defaultBackupLocation = file.getAbsolutePath();
@@ -668,12 +665,12 @@ public class BackupManager implements ActionListener {
     @Override
 	public void actionPerformed(ActionEvent e) {
         if (e.getActionCommand() == "backup") {
-        	if (checkboxStates.size() > 0 && checkboxStates.contains(true)){
-        		for (int i = checkboxStates.size() - 1; i >= 0; i-- )
+        	if (config.checkboxStates.size() > 0 && config.checkboxStates.contains(true)){
+        		for (int i = config.checkboxStates.size() - 1; i >= 0; i-- )
         		{
-        			if (checkboxStates.get(i))
+        			if (config.checkboxStates.get(i))
         			{
-        				Backup.backupFile(backups.get(i));
+        				Backup.backupFile(config.backups.get(i));
         			}
         		}
         	} else {
@@ -681,12 +678,12 @@ public class BackupManager implements ActionListener {
         	}
         }
         else if (e.getActionCommand() == "revert") {
-        	if (checkboxStates.size() > 0 && checkboxStates.contains(true)){
-        		for (int i = checkboxStates.size() - 1; i == 0; i-- )
+        	if (config.checkboxStates.size() > 0 && config.checkboxStates.contains(true)){
+        		for (int i = config.checkboxStates.size() - 1; i == 0; i-- )
         		{
-        			if (checkboxStates.get(i))
+        			if (config.checkboxStates.get(i))
         			{
-        				Backup.restoreFile(backups.get(i), true);
+        				Backup.restoreFile(config.backups.get(i), true);
         			}
         		}
         	} else {
@@ -697,13 +694,13 @@ public class BackupManager implements ActionListener {
         	createAddBackupNameWindow();
         }
         else if (e.getActionCommand() == "remove") {
-        	if (checkboxStates.size() > 0 && checkboxStates.contains(true)){
-        		for (int i = checkboxStates.size() - 1; i >= 0; i-- )
+        	if (config.checkboxStates.size() > 0 && config.checkboxStates.contains(true)){
+        		for (int i = config.checkboxStates.size() - 1; i >= 0; i-- )
         		{
-        			if (checkboxStates.get(i))
+        			if (config.checkboxStates.get(i))
         			{
-        				backups.remove(i);
-        				checkboxStates.remove(i);
+        				config.backups.remove(i);
+        				config.checkboxStates.remove(i);
         			}
         		}
 				createGUI();
@@ -716,8 +713,7 @@ public class BackupManager implements ActionListener {
         if (e.getActionCommand() == "fileOpen") {
         	createFileChooserWindow(5, null, 0);
         } else if (e.getActionCommand() == "fileSave") {
-        	
-        	System.out.println(e.getActionCommand());
+        	setConfig();
         } else if (e.getActionCommand() == "fileSaveAs") {
         	createFileChooserWindow(6, null, 0);
         	System.out.println(e.getActionCommand());
@@ -751,13 +747,11 @@ public class BackupManager implements ActionListener {
     public static void setConfig() {
     	try {
     		File settingsFile = new File(configFile.getAbsolutePath());
-    		System.out.println("here");
     		if(!new File(settingsLocation).exists()) {
     			Files.createDirectory(new File(settingsLocation).toPath());
     		}
     		if(!settingsFile.exists()) {
     			Files.createFile(settingsFile.toPath());
-    			System.out.println("made new file");
     		}
 			FileWriter file = new FileWriter(settingsFile);
 			file.write(gson.toJson(config));
@@ -784,9 +778,6 @@ public class BackupManager implements ActionListener {
     }
     
 	public static void main(String[] args) {
-		setDefaultLocations();
-		readConfig();
-
 		new BackupManager();
 	}
 
