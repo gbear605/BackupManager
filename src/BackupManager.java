@@ -114,7 +114,7 @@ public class BackupManager implements ActionListener {
 		for(BackupFile file : backups)
 		{
 			
-			listBox.add(createListItem(file.name, file.fileLocation, count));
+			listBox.add(createListItem(file.name, file.fileLocation.toString(), count));
 			count++;
 		}
 		
@@ -286,7 +286,7 @@ public class BackupManager implements ActionListener {
 
 
 		    	  
-		    	  backups.add(new BackupFile(createFileChooserWindow(), nameInput.getText()));
+		    	  backups.add(new BackupFile(new File(createFileChooserWindow()), nameInput.getText()));
 		    	  nameWindow.dispose();
 		        }
 		      });
@@ -463,5 +463,4 @@ public class BackupManager implements ActionListener {
 		new BackupManager();
 	}
 
-
-
+}

@@ -15,10 +15,10 @@ public class Backup {
 	public static void backupFile(BackupFile fileToBackup, boolean replace){
 		try {
 			if(replace) {
-				Files.copy(fileToBackup.fileLocation.toPath(), fileToBackup.backupLocation.toPath(), REPLACE_EXISTING, COPY_ATTRIBUTES);
+				Files.copy(fileToBackup.getFileLocation().toPath(), fileToBackup.getBackupLocation().toPath(), REPLACE_EXISTING, COPY_ATTRIBUTES);
 			}
 			else {
-				Files.copy(fileToBackup.fileLocation.toPath(), fileToBackup.backupLocation.toPath(), COPY_ATTRIBUTES);
+				Files.copy(fileToBackup.getFileLocation().toPath(), fileToBackup.getBackupLocation().toPath(), COPY_ATTRIBUTES);
 			}		} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -33,10 +33,10 @@ public class Backup {
 	public static void restoreFile(BackupFile fileToRestore, boolean replace) {
 		try {
 			if(replace) {
-				Files.copy(fileToRestore.backupLocation.toPath(), fileToRestore.fileLocation.toPath(), REPLACE_EXISTING, COPY_ATTRIBUTES);
+				Files.copy(fileToRestore.getBackupLocation().toPath(), fileToRestore.getFileLocation().toPath(), REPLACE_EXISTING, COPY_ATTRIBUTES);
 			}
 			else {
-				Files.copy(fileToRestore.backupLocation.toPath(), fileToRestore.fileLocation.toPath(), COPY_ATTRIBUTES);
+				Files.copy(fileToRestore.getBackupLocation().toPath(), fileToRestore.getFileLocation().toPath(), COPY_ATTRIBUTES);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();

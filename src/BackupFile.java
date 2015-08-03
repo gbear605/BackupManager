@@ -5,21 +5,21 @@ public class BackupFile {
 
 	String name;
 	Boolean setToDelete = false;
-	String fileLocation;
+	File fileLocation;
 	ArrayList<String> backupLocations = new ArrayList<String>(1);
 
-	public BackupFile(String _fileLocation, String _name) {
+	public BackupFile(File _fileLocation, String _name) {
 		name = _name;
 		fileLocation = _fileLocation;
 		backupLocations.add(Configuration.defaultBackupLocation);
 		
 	}
 
-	public void setFileLocation(String _fileLocation) {
+	public void setFileLocation(File _fileLocation) {
 		fileLocation = _fileLocation;
 	}
 
-	public String getFileLocation() {
+	public File getFileLocation() {
 		return fileLocation;
 	}
 
