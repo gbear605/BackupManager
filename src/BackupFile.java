@@ -3,6 +3,7 @@ import java.io.*;
 public class BackupFile {
 
 	String name;
+	Boolean setToDelete = false;
 	String fileLocation;
 	String[] backupLocations;
 

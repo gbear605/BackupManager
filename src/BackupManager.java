@@ -20,6 +20,7 @@ public class BackupManager implements ActionListener {
 	public static File configFile;
 	public static Configuration config;
 	
+	
 	JFrame window;
 	Container Pane;
 	JPanel backupItems;
@@ -36,32 +37,19 @@ public class BackupManager implements ActionListener {
 		
 		//Makes the window and gives it an icon
 		window = new JFrame("Backup Manager " + version);
-		window.setSize(500, 500);
+		window.setSize(700, 500);
 		window.setLocationRelativeTo(null);
 		Pane = window.getContentPane();
-
 		Pane.setLayout(new GridBagLayout());
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE );
 		window.setResizable(false);
 		
-		GridBagConstraints gridBag = new GridBagConstraints();
 		
-		backups.add(new BackupFile("resources/test", "minecraft"));
-		backups.add(new BackupFile("resources/test", "bee simulator"));
+		//ADD SAVE LOADING METHOD CALL HERE		
+
+
 		
-		//adds control panel and backup list to main window
-		//control panel
-		gridBag.fill = GridBagConstraints.HORIZONTAL;
-		gridBag.weightx = 1;
-		gridBag.gridx = 0;
-		gridBag.gridy = 0;
-		Pane.add(createControlPanel(), gridBag);
-		
-		//backup list
-		gridBag.fill = GridBagConstraints.BOTH;
-		gridBag.weighty = 1;
-		gridBag.gridy = 1;
-		Pane.add(createItemList(0), gridBag);
+		createGUI();
 
 		//handles closing
 		window.addWindowListener(new WindowAdapter(){
@@ -75,41 +63,152 @@ public class BackupManager implements ActionListener {
 
 
 	}
-
-	public JPanel createItemList(int offset)
+	
+	public void createGUI()
 	{
-		JPanel listPanel = new JPanel();
-		listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
-		listPanel.setBorder(BorderFactory.createCompoundBorder(new EmptyBorder(5, 5, 5, 5), new LineBorder(Color.BLACK)));
-
-
+		Component[] comps = Pane.getComponents();
+		GridBagConstraints gridBag = new GridBagConstraints();	
 		
-		for(BackupFile file : backups)
+		if (comps.length == 2)
 		{
-			listPanel.add(createListItem(file.name, file.fileLocation));
+			Pane.remove(comps[1]);
+			//backup list
+			gridBag.fill = GridBagConstraints.BOTH;
+			gridBag.weighty = 1;
+			gridBag.gridy = 1;
+			Pane.add(createItemList(0), gridBag);
+		} else {
+			
+			//adds control panel and backup list to main window
+			//control panel
+			gridBag.fill = GridBagConstraints.HORIZONTAL;
+			gridBag.weightx = 1;
+			gridBag.gridx = 0;
+			gridBag.gridy = 0;
+			Pane.add(createControlPanel(), gridBag);
+			
+			//backup list
+			gridBag.fill = GridBagConstraints.BOTH;
+			gridBag.weighty = 1;
+			gridBag.gridy = 1;
+			Pane.add(createItemList(0), gridBag);
+
 		}
-		
-		return listPanel;
+
+		window.revalidate();
 	}
 	
-	public Component createListItem(String _name, String _fileLocation)
+	public Component createItemList(int offset)
+	{
+		Box listBox = Box.createVerticalBox();
+		int count = 0;
+
+		listBox.setBorder(BorderFactory.createCompoundBorder(new EmptyBorder(5, 5, 5, 5), new LineBorder(Color.BLACK)));
+		listBox.add(createListHeader());
+
+		for(BackupFile file : backups)
+		{
+			
+			listBox.add(createListItem(file.name, file.fileLocation, count));
+			count++;
+		}
+		
+		return listBox;
+	}
+	
+	public Component createListHeader()
+	{
+		Box headerBox = Box.createHorizontalBox();
+		JLabel headerName = new JLabel("Backup name"),
+				headerPath = new JLabel("Backup path"),
+				headerRemove = new JLabel("Remove");
+		
+		//set border
+		headerBox.setBorder(new LineBorder(Color.black));
+
+		//initialises labels
+		headerRemove.setBorder(new EmptyBorder(5, 5, 5, 5));
+		headerName.setPreferredSize(new Dimension(106, 0));
+		headerName.setBorder(new EmptyBorder(5, 10, 5, 0));
+		headerPath.setPreferredSize(new Dimension(150, 0));
+		headerPath.setBorder(new EmptyBorder(5, 0, 5, 0));
+
+		//adds labels to box
+		headerBox.add(headerName);
+		headerBox.add(headerPath);
+		headerBox.add(Box.createHorizontalGlue());
+		headerBox.add(headerRemove);
+		
+		return headerBox;
+	}
+	
+	public Component createListItem(String _name, String _fileLocation, int count)
 	{
 		JLabel name = new JLabel(_name);
 	    Box createBox = Box.createHorizontalBox();
+	    JCheckBox setDelete = new JCheckBox();
 
 	    //sets up the name label
 	    name.setBorder(new EmptyBorder(5, 5, 5, 0));
-	    name.setPreferredSize(new Dimension(150, 0));
-
+	    name.setPreferredSize(new Dimension(100, 0));
+	    
+	    setDelete.addItemListener(new ItemListener() {
+	        public void itemStateChanged(ItemEvent e) {
+	        	if (setDelete.isSelected())
+	        	{
+	        		backups.get(count).setToDelete = true;
+	        	} else {
+		        	backups.get(count).setToDelete = false;
+	        	}
+	          }
+	        });
+	    
 	    //adds to the box and makes sure everything has space
 		createBox.add(name);
 		createBox.add(new JLabel(_fileLocation));
 	    createBox.add(Box.createHorizontalGlue());
 	    createBox.add(new JButton("bac"));
 	    createBox.add(new JButton("rev"));
-	    createBox.add(new JCheckBox());
+	    createBox.add(setDelete);
 	    createBox.setBorder(BorderFactory.createCompoundBorder(new EmptyBorder(5, 5, 0, 5), new BevelBorder(1, Color.black, Color.gray)));
+	    
+
 		return createBox;
+	}
+	
+	public void createErrorWindow(String error)
+	{
+		JFrame errorWindow = new JFrame("Error");
+		Container errorPane = new Container();
+		JButton errorButton = new JButton("Okay");
+		JLabel errorMessage = new JLabel(error);
+		
+		//initialise window and disable main window
+		errorWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE );
+		errorWindow.setSize(250, 70);
+		errorWindow.setResizable(false);
+		errorWindow.setLocationRelativeTo(null);
+		window.setEnabled(false);		
+		errorPane = errorWindow.getContentPane();
+		errorPane.setLayout(new BoxLayout(errorPane, BoxLayout.PAGE_AXIS));
+		
+		//initialises buttons
+		errorMessage.setAlignmentX(Component.CENTER_ALIGNMENT);
+		errorButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		errorButton.addActionListener(new ActionListener() {
+		      @Override
+			public void actionPerformed(ActionEvent e) {
+		    	  	errorWindow.dispose();
+		  			window.setEnabled(true);
+		  			window.toFront();
+		        }
+		      });
+		
+		//adds buttons to pane
+		errorPane.add(errorMessage);
+		errorPane.add(errorButton);
+
+		errorWindow.setVisible(true);
 	}
 	
 	public void createAddBackupNameWindow()
@@ -194,7 +293,8 @@ public class BackupManager implements ActionListener {
 		fileWindow.setResizable(false);
 		fileWindow.setLocationRelativeTo(null);
 		fileWindow.setVisible(true);
-		window.setEnabled(false);		
+		window.setEnabled(false);	
+		window.toFront();
 		filePane = fileWindow.getContentPane();
 		fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 		fileChooser.setApproveButtonText("Backup");
@@ -208,7 +308,10 @@ public class BackupManager implements ActionListener {
 			public void actionPerformed(ActionEvent e) {
 				if (e.getActionCommand() == "ApproveSelection")
 				{
+					//createListItem(fileChooser.getSelectedFile().getAbsolutePath(), fileName, backups.size());
 					backups.add(new BackupFile(fileChooser.getSelectedFile().getAbsolutePath(), fileName));
+					createGUI();
+
 				    window.setEnabled(true);
 			 		fileWindow.dispose();
 				}
@@ -255,8 +358,6 @@ public class BackupManager implements ActionListener {
 		return controls;	
 	}
 	
-
-	
 	//add logic for buttons in here
     @Override
 	public void actionPerformed(ActionEvent e) {
@@ -271,7 +372,20 @@ public class BackupManager implements ActionListener {
         	createAddBackupNameWindow();
         }
         else if (e.getActionCommand() == "remove") {
-        	System.out.println(e.getActionCommand());
+        	if (backups.size() > 0){
+        		for (int i = backups.size() - 1; i == 0; i-- )
+        		{
+        			if (backups.get(i).setToDelete)
+        			{
+        				backups.remove(i);
+
+        			}
+        		}
+				createGUI();
+        	} else {
+        		createErrorWindow("Nothing to delete");
+        	}
+
         }
     }
     
