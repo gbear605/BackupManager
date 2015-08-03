@@ -4,7 +4,6 @@ import java.util.ArrayList;
 public class BackupFile {
 //test
 	String name;
-	Boolean setToDelete = false;
 	File fileLocation;
 	ArrayList<File> backupLocations = new ArrayList<File>(1);
 

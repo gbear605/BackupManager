@@ -27,6 +27,7 @@ public class BackupManager implements ActionListener {
 	JFrame window;
 	Container Pane;
 	JPanel backupItems;
+	Boolean selectAll = false;
 	ArrayList<BackupFile> backups = new ArrayList<BackupFile>();
 	ArrayList<Boolean> checkboxStates = new ArrayList<Boolean>();
 
@@ -129,24 +130,33 @@ public class BackupManager implements ActionListener {
 	{
 		Box headerBox = Box.createHorizontalBox();
 		JLabel headerName = new JLabel("Backup name"),
-				headerPath = new JLabel("Backup path"),
-				headerRemove = new JLabel("Remove");
+				headerPath = new JLabel("Backup path");
+		JCheckBox headerCheckBox = new JCheckBox();
 		
 		//set border
 		headerBox.setBorder(new LineBorder(Color.black));
 
 		//initialises labels
-		headerRemove.setBorder(new EmptyBorder(5, 5, 5, 5));
 		headerName.setPreferredSize(new Dimension(106, 0));
 		headerName.setBorder(new EmptyBorder(5, 10, 5, 0));
-		headerPath.setPreferredSize(new Dimension(515, 0));
+		headerPath.setPreferredSize(new Dimension(529, 0));
 		headerPath.setBorder(new EmptyBorder(5, 0, 5, 0));
-
+		headerCheckBox.setSelected(selectAll);
+		headerCheckBox.addItemListener(new ItemListener() {
+	        public void itemStateChanged(ItemEvent e) {
+	        	for(int i = checkboxStates.size() - 1; i >= 0; i-- ){
+		        	checkboxStates.set(i, headerCheckBox.isSelected());
+		        	selectAll = headerCheckBox.isSelected();
+		        	createGUI();
+	        	}
+	          }
+	        });
+		
 		//adds labels to box
 		headerBox.add(headerName);
 		headerBox.add(headerPath);
 
-		headerBox.add(headerRemove);
+		headerBox.add(headerCheckBox);
 		headerBox.add(Box.createHorizontalGlue());
 		
 		return headerBox;
@@ -164,6 +174,7 @@ public class BackupManager implements ActionListener {
 	    name.setBorder(new EmptyBorder(5, 5, 5, 0));
 	    name.setPreferredSize(new Dimension(100, 0));
 	    
+	    setDelete.setSelected(checkboxStates.get(count));
 	    setDelete.addItemListener(new ItemListener() {
 	        public void itemStateChanged(ItemEvent e) {
 	        	if (setDelete.isSelected())
@@ -361,9 +372,6 @@ public class BackupManager implements ActionListener {
 		setName.addActionListener(new ActionListener() {
 		      @Override
 			public void actionPerformed(ActionEvent e) {
-
-
-		    	  
 		    	  createFileChooserWindow(1, nameInput.getText(), 0);
 		    	  nameWindow.dispose();
 		        }
@@ -371,7 +379,9 @@ public class BackupManager implements ActionListener {
 		cancelName.addActionListener(new ActionListener() {
 		      @Override
 			public void actionPerformed(ActionEvent e) {
-					window.setEnabled(true);
+		    	  nameWindow.dispose();
+		    	  window.setEnabled(true);
+		    	  window.toFront();
 		        }
 		      });
 
@@ -646,7 +656,6 @@ public class BackupManager implements ActionListener {
         			if (checkboxStates.get(i))
         			{
         				Backup.backupFile(backups.get(i));
-        				System.out.println(backups.get(i).getFileLocation());
         			}
         		}
         	} else {
@@ -660,7 +669,6 @@ public class BackupManager implements ActionListener {
         			if (checkboxStates.get(i))
         			{
         				Backup.restoreFile(backups.get(i), true);
-        				System.out.println(backups.get(i).getFileLocation());
         			}
         		}
         	} else {
