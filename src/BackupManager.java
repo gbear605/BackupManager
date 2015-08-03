@@ -154,7 +154,7 @@ public class BackupManager implements ActionListener {
 		JLabel name = new JLabel(_name);
 	    Box createBox = Box.createHorizontalBox();
 	    JCheckBox setDelete = new JCheckBox();
-	    JButton chooseBackup = new JButton("back");
+	    JButton chooseInput = new JButton("in"), chooseOutputs = new JButton("out");
 
 	    //sets up the name label
 	    name.setBorder(new EmptyBorder(5, 5, 5, 0));
@@ -175,14 +175,20 @@ public class BackupManager implements ActionListener {
 		createBox.add(name);
 		createBox.add(new JLabel(_fileLocation));
 	    createBox.add(Box.createHorizontalGlue());
-	    chooseBackup.addItemListener(new ItemListener() {
-	        public void itemStateChanged(ItemEvent e) {
-	        	backups.get(count).backupLocations.add(createFileChooserWindow());
+	    chooseInput.addActionListener(new ActionListener() {
+	        public void actionPerformed(ActionEvent e) {
+	        	System.out.println("test");
+	        	createFileChooserWindow(2, _name, count);
 	          }
 	        });
-	    createBox.add(chooseBackup);
-	    
-	    createBox.add(new JButton("rev"));
+	    createBox.add(chooseInput);
+	    chooseOutputs.addActionListener(new ActionListener() {
+	        public void actionPerformed(ActionEvent e) {
+	        	System.out.println("test");
+	        	createFileChooserWindow(3, _name, count);
+	          }
+	        });
+	    createBox.add(chooseOutputs);
 	    createBox.add(setDelete);
 	    createBox.setBorder(BorderFactory.createCompoundBorder(new EmptyBorder(5, 5, 0, 5), new BevelBorder(1, Color.black, Color.gray)));
 	    
@@ -286,7 +292,7 @@ public class BackupManager implements ActionListener {
 
 
 		    	  
-		    	  backups.add(new BackupFile(new File(createFileChooserWindow()), nameInput.getText()));
+		    	  createFileChooserWindow(1, nameInput.getText(), 0);
 		    	  nameWindow.dispose();
 		        }
 		      });
@@ -307,11 +313,10 @@ public class BackupManager implements ActionListener {
 	}
 	
 	//creates a filechooser
-	public String createFileChooserWindow()
+	public String createFileChooserWindow(int function, String fileName, int itemID)
 	{
 		JFrame fileWindow = new JFrame("Find file to backup");
 		JFileChooser fileChooser = new JFileChooser();
-		String filePath;
 		JLabel test = new JLabel();
 		
 		//initialise window and disable main window
@@ -335,15 +340,12 @@ public class BackupManager implements ActionListener {
 			public void actionPerformed(ActionEvent e) {
 				if (e.getActionCommand() == "ApproveSelection")
 				{
-					fileChooserOutput.setText(fileChooser.getSelectedFile().getAbsolutePath());
-					createGUI();
-					
+					createOrEditListItem(function, fileChooser.getSelectedFile(), fileName, itemID);
 				    window.setEnabled(true);
 			 		fileWindow.dispose();
 				}
 				else if (e.getActionCommand() == "CancelSelection")
 				{
-					fileChooserOutput.setText(null);
 	        	  	window.setEnabled(true);
 	        	  	fileWindow.dispose();
 				}
@@ -359,6 +361,22 @@ public class BackupManager implements ActionListener {
 			}
 		});
 		return test.getText();
+	}
+	
+	public void createOrEditListItem(int function, File file, String name, int id)
+	{
+		//function 1 = add new item based off path and name
+		//function 2 = edit existing item's input
+		//function 3 = add new output to existing item
+		
+		if (function == 1){
+			backups.add(new BackupFile(file, name));
+		} else if (function == 2){
+			backups.get(id).setFileLocation(file);
+		} else if (function == 3){
+			backups.get(id).backupLocations.add(file.getAbsolutePath());
+		}
+		createGUI();
 	}
 	
 	//creates control panel

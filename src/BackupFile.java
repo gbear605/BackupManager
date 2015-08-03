@@ -13,6 +13,7 @@ public class BackupFile {
 		fileLocation = _fileLocation;
 		backupLocations.add(Configuration.defaultBackupLocation);
 		
+		
 	}
 
 	public void setFileLocation(File _fileLocation) {
@@ -24,7 +25,7 @@ public class BackupFile {
 	}
 
 	public void setBackupLocation() {
-
+		
 	}
 
 	public File getBackupLocation() {
