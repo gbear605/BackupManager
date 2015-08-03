@@ -20,6 +20,8 @@ public class BackupManager implements ActionListener {
 	public static File configFile;
 	public static Configuration config;
 	
+	public static String defaultLocation; //TODO: use
+	
 	JFrame window;
 	Container Pane;
 	JPanel backupItems;
@@ -272,7 +274,7 @@ public class BackupManager implements ActionListener {
 		for (int i = 0; i < backups.get(id).backupLocations.size(); i++)
 		{
 			Box itemBox = Box.createHorizontalBox();
-			JLabel labelBox = new JLabel(backups.get(id).backupLocations.get(i));
+			JLabel labelBox = new JLabel(backups.get(id).getBackupLocations().get(i).getAbsolutePath());
 			JButton removeButton = new JButton("Remove");
 			
 			int count = i;
@@ -450,7 +452,7 @@ public class BackupManager implements ActionListener {
 		} else if (function == 2){
 			backups.get(id).setFileLocation(file);
 		} else if (function == 3){
-			backups.get(id).backupLocations.add(file.getAbsolutePath());
+			backups.get(id).addBackupLocation(file);
 	    	createItemOutputs(id);
 		} else if (function == 4){
 			Configuration.defaultBackupLocation = file.getAbsolutePath();
@@ -619,10 +621,14 @@ public class BackupManager implements ActionListener {
     @Override
 	public void actionPerformed(ActionEvent e) {
         if (e.getActionCommand() == "backup") {
-        	System.out.println(e.getActionCommand());
+        	for(BackupFile backup : backups) {
+        		Backup.backupFile(backup);
+        	}
         }
         else if (e.getActionCommand() == "revert") {
-        	System.out.println(e.getActionCommand());
+        	for(BackupFile revert : backups) {
+        		Backup.restoreFile(revert,true);
+        	}
         }
         else if (e.getActionCommand() == "add") {
         	createAddBackupNameWindow();
@@ -678,7 +684,6 @@ public class BackupManager implements ActionListener {
     }
     
 	public static void main(String[] args) {
-
 		String workingDirectory;
 		String OS = (System.getProperty("os.name")).toUpperCase();
 		if (OS.contains("WIN")) {

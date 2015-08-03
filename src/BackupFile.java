@@ -6,12 +6,12 @@ public class BackupFile {
 	String name;
 	Boolean setToDelete = false;
 	File fileLocation;
-	ArrayList<String> backupLocations = new ArrayList<String>(1);
+	ArrayList<File> backupLocations = new ArrayList<File>(1);
 
 	public BackupFile(File _fileLocation, String _name) {
 		name = _name;
 		fileLocation = _fileLocation;
-		backupLocations.add(Configuration.defaultBackupLocation);
+		backupLocations.add(new File(Configuration.defaultBackupLocation));
 		
 		
 	}
@@ -24,11 +24,11 @@ public class BackupFile {
 		return fileLocation;
 	}
 
-	public void setBackupLocation() {
-		
+	public void addBackupLocation(File file) {
+		backupLocations.add(new File(file.toString() + "/" + fileLocation.getName()));
 	}
 
-	public File getBackupLocation() {
-		return null;
+	public ArrayList<File> getBackupLocations() {
+		return backupLocations;
 	}	
 }

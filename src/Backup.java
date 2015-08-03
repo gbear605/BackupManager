@@ -5,25 +5,19 @@ import static java.nio.file.StandardCopyOption.*;
 
 public class Backup {
 
-	public static void backupFiles(BackupFile[] filesToBackup, boolean replace)
+	public static void backupFiles(BackupFile[] filesToBackup)
 	{
 		for(BackupFile fileToBackup : filesToBackup) {
-			backupFile(fileToBackup, replace);
+			backupFile(fileToBackup);
 		}
 	}
 
-	public static void backupFile(BackupFile fileToBackup, boolean replace){
-		try {
-			if(replace) {
-				Files.copy(fileToBackup.getFileLocation().toPath(), fileToBackup.getBackupLocation().toPath(), REPLACE_EXISTING, COPY_ATTRIBUTES);
-			}
-			else {
-				Files.copy(fileToBackup.getFileLocation().toPath(), fileToBackup.getBackupLocation().toPath(), COPY_ATTRIBUTES);
-			}		} catch (IOException e) {
-				e.printStackTrace();
-			}
+	public static void backupFile(BackupFile fileToBackup){
+		for(File file : fileToBackup.getBackupLocations()) {
+			copy(fileToBackup.getFileLocation(), file);
+		}
 	}
-
+	
 	public static void restoreFiles(BackupFile[] filesToRestore, boolean replace) {
 		for(BackupFile fileToRestore : filesToRestore) {
 			restoreFile(fileToRestore, replace);
@@ -31,13 +25,35 @@ public class Backup {
 	}
 
 	public static void restoreFile(BackupFile fileToRestore, boolean replace) {
+		copy(fileToRestore.getBackupLocations().get(0),fileToRestore.getFileLocation());
+	}
+	
+	private static void copy(File from, File to){	
 		try {
-			if(replace) {
-				Files.copy(fileToRestore.getBackupLocation().toPath(), fileToRestore.getFileLocation().toPath(), REPLACE_EXISTING, COPY_ATTRIBUTES);
+			if(to.exists()) {
+				delete(to);
 			}
-			else {
-				Files.copy(fileToRestore.getBackupLocation().toPath(), fileToRestore.getFileLocation().toPath(), COPY_ATTRIBUTES);
+			Files.copy(from.toPath(), to.toPath(), REPLACE_EXISTING, COPY_ATTRIBUTES);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if(from.isDirectory()) {
+			for(File inner : from.listFiles()) {
+				copy(inner,new File(to.toString() + inner.toString().substring(from.toString().length(), inner.toString().length())));
+				
 			}
+		}
+	}
+	
+	private static void delete(File file) {
+		if(file.isDirectory()) {
+			for(File inner : file.listFiles()) {
+				delete(inner);
+			}
+		}
+		try {
+			Files.delete(file.toPath());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
