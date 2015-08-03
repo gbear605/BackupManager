@@ -493,7 +493,7 @@ public class BackupManager implements ActionListener {
 			config.defaultBackupLocation = file.getAbsolutePath();
         	createSettingsWindow();
 		} else if (function == 5){
-			readConfig("");
+			readConfig();
 		} else if (function == 6){
 			setConfig();
 		}
@@ -727,9 +727,10 @@ public class BackupManager implements ActionListener {
         
     }
     
-    public static void readConfig(String defaultBackupLocation) {
+    public static void readConfig() {
     	String text = "{}";
     	if(configFile.exists()) {
+    		
 	    	try {
 				text = new String(Files.readAllBytes(configFile.toPath()));
 			} catch (IOException e) {
@@ -737,6 +738,9 @@ public class BackupManager implements ActionListener {
 			}
 	    	config = gson.fromJson(text,Configuration.class);
     	} else {
+    		//TODO: create a panel to ask the user for the default backup location
+    		String defaultBackupLocation = fileSearchLocation + File.separator + "Backups";
+
     		config = new Configuration();
     		config.defaultBackupLocation = defaultBackupLocation;	
     		setConfig();
@@ -764,35 +768,25 @@ public class BackupManager implements ActionListener {
     }
     
     public static void setDefaultLocations() {
-		String defaultBackupLocation;
 		String OS = (System.getProperty("os.name")).toUpperCase();
 		if (OS.contains("WIN")) {
 		    settingsLocation = System.getenv("AppData");
-		    defaultBackupLocation = "C:\\Users";
 		    fileSearchLocation = "C:\\Users";
 		} else {
 		    settingsLocation = System.getProperty("user.home");
-		    defaultBackupLocation = settingsLocation;
 		    fileSearchLocation = settingsLocation;
-		    settingsLocation += "/Library/Application Support";
+		    if(OS.contains("MAC OS X")) {
+			    settingsLocation += "/Library/Application Support";
+		    }
 		}
 		settingsLocation += File.separator + "BackupManager" + File.separator;
-		defaultBackupLocation += File.separator + "BackupManager" + File.separator;
-		
-		File defaultLoc = new File(defaultBackupLocation);
-		if(defaultLoc.exists() && !defaultLoc.isDirectory()) {
-			defaultLoc.delete();
-		}
-		if(!defaultLoc.exists()) {
-			defaultLoc.mkdir();
-		}
-		
 		configFile = new File(settingsLocation + "settings.bkpm");
-		readConfig(defaultBackupLocation);
     }
     
 	public static void main(String[] args) {
 		setDefaultLocations();
+		readConfig();
+
 		new BackupManager();
 	}
 
