@@ -641,7 +641,7 @@ public class BackupManager implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
         if (e.getActionCommand() == "backup") {
         	if (checkboxStates.size() > 0 && checkboxStates.contains(true)){
-        		for (int i = checkboxStates.size() - 1; i == 0; i-- )
+        		for (int i = checkboxStates.size() - 1; i >= 0; i-- )
         		{
         			if (checkboxStates.get(i))
         			{
