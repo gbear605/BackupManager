@@ -1,16 +1,17 @@
 # BackupManager
 A work in progress backup manager. It is currently non-functional.
 
+## Current functionality
+- Backup any number of files to any number of different backup locations
+
+- The locations can be unique for each file
+
+- Revert any file from the very first backup location
+
 ## Planned functionality
-- Creates a file which the program opens
+- Saving the location and name of all the files that have previously been backed up
 
-- File saves directories/file locations
-
-- Can add and remove from this list
-
-- Can press a button to save these files to another directory
-
-- Backups to unique directory for each item on the list
+- Saving settings
 
 ## Possible future functionality
 - Runs on a specified time every day/week/month/etc.

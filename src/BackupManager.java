@@ -22,7 +22,9 @@ public class BackupManager implements ActionListener {
 	public static File configFile;
 	public static Configuration config;
 	
-	public static String defaultLocation; //TODO: use
+	public static String fileSearchLocation;
+	public static String sep; //Either / or \
+	public static String defaultLocation; 
 	
 	JFrame window;
 	Container Pane;
@@ -438,7 +440,7 @@ public class BackupManager implements ActionListener {
 			}
 		}
 		fileChooser.setApproveButtonText("Backup");
-		fileChooser.setCurrentDirectory(new File(config.defaultBackupLocation));
+		fileChooser.setCurrentDirectory(new File(fileSearchLocation));
   		//add file chooser to the window
   		fileWindow.add(fileChooser);
 		
@@ -550,6 +552,13 @@ public class BackupManager implements ActionListener {
 	        	settingsWindow.dispose();
 				window.setEnabled(true);
 				window.toFront();
+				String path = filePath.getText();
+				if(!path.substring(path.length()-1, path.length()).equals(sep)) {
+					config.defaultBackupLocation = path + sep;
+				}
+				else { 
+					config.defaultBackupLocation = path;
+				}
 	          }
 	        });
 		gridBag.weightx = 0;
@@ -688,7 +697,7 @@ public class BackupManager implements ActionListener {
         }
         else if (e.getActionCommand() == "remove") {
         	if (checkboxStates.size() > 0 && checkboxStates.contains(true)){
-        		for (int i = checkboxStates.size() - 1; i == 0; i-- )
+        		for (int i = checkboxStates.size() - 1; i >= 0; i-- )
         		{
         			if (checkboxStates.get(i))
         			{
@@ -739,19 +748,36 @@ public class BackupManager implements ActionListener {
     
 	public static void main(String[] args) {
 		String workingDirectory;
+		String defaultBackupLocation;
 		String OS = (System.getProperty("os.name")).toUpperCase();
 		if (OS.contains("WIN")) {
 		    workingDirectory = System.getenv("AppData");
+		    defaultBackupLocation = "C:\\Users";
+		    fileSearchLocation = "C:\\Users";
+		    sep = "\\";
 		} else {
 		    workingDirectory = System.getProperty("user.home");
+		    defaultBackupLocation = workingDirectory;
+		    fileSearchLocation = workingDirectory;
 		    workingDirectory += "/Library/Application Support";
+		    sep = "/";
 		}
 		workingDirectory += "/BackupManager";
-
+		defaultBackupLocation += "/BackupManager/";
+		
+		File defaultLoc = new File(defaultBackupLocation);
+		if(defaultLoc.exists() && !defaultLoc.isDirectory()) {
+			defaultLoc.delete();
+		}
+		if(!defaultLoc.exists()) {
+			defaultLoc.mkdir();
+		}
+		
 		configFile = new File(workingDirectory);
 		//config = readConfig();
 		config = new Configuration();
-		config.defaultBackupLocation = "C:\\Users";
+		config.defaultBackupLocation = defaultBackupLocation;
+		System.out.println(config.defaultBackupLocation);
 		
 		new BackupManager();
 	}
