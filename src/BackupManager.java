@@ -171,7 +171,7 @@ public class BackupManager implements ActionListener {
 	          }
 	        });
 	    
-	    //adds to the box and makes sure everything has space
+	    //adds to the box and makes sure everything has spaces
 		createBox.add(name);
 		createBox.add(new JLabel(_fileLocation));
 	    createBox.add(Box.createHorizontalGlue());

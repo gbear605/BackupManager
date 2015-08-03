@@ -2,7 +2,7 @@ import java.io.*;
 import java.util.ArrayList;
 
 public class BackupFile {
-
+//test
 	String name;
 	Boolean setToDelete = false;
 	File fileLocation;
