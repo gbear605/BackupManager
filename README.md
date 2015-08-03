@@ -15,6 +15,8 @@ A work in progress backup manager. It is currently non-functional.
 ## Possible future functionality
 - Runs on a specified time every day/week/month/etc.
 
+- Can be run from the command line
+
 - Compresses saves
 
 ## Contributing
