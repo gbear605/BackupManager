@@ -9,6 +9,8 @@ import java.util.ArrayList;
 
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import com.google.gson.Gson;
 
@@ -395,9 +397,19 @@ public class BackupManager implements ActionListener {
 		fileWindow.setVisible(true);
 		window.setEnabled(false);	
 		window.toFront();
-		if (function == 4){	
+		if (function == 4 || function == 5){
+			if (function == 5){
+				FileFilter bkpmFile = new FileNameExtensionFilter(
+					    "bkpm files", "bkpm");
+				fileWindow.setTitle("Open backup file");
+				fileChooser.addChoosableFileFilter(bkpmFile);
+				fileChooser.setFileFilter(bkpmFile);
+			}
+			else
+			{
 			fileWindow.setTitle("Choose default directory");
 			fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			}
 		} else{
 			fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 			if (function == 1){
@@ -406,6 +418,8 @@ public class BackupManager implements ActionListener {
 				fileWindow.setTitle("Change file or folder to backup");
 			} else if (function == 3){
 				fileWindow.setTitle("Add folder to backup to");
+			} else if (function == 5){
+				
 			}
 		}
 		fileChooser.setApproveButtonText("Backup");
@@ -446,6 +460,7 @@ public class BackupManager implements ActionListener {
 		//function 2 = edit existing item's input
 		//function 3 = add new output to existing item
 		//function 4 = set default path
+		//function 5 = open backups file
 		
 		if (function == 1){
 			backups.add(new BackupFile(file, name));
@@ -456,9 +471,11 @@ public class BackupManager implements ActionListener {
 	    	createItemOutputs(id);
 		} else if (function == 4){
 			Configuration.defaultBackupLocation = file.getAbsolutePath();
-
         	createSettingsWindow();
+		} else if (function == 5){
+			System.out.println(file);
 		}
+		
 		createGUI();
 	}
 	
@@ -651,7 +668,7 @@ public class BackupManager implements ActionListener {
         
         //menu items
         if (e.getActionCommand() == "fileOpen") {
-        	System.out.println(e.getActionCommand());
+        	createFileChooserWindow(5, null, 0);
         } else if (e.getActionCommand() == "fileSave") {
         	System.out.println(e.getActionCommand());
         } else if (e.getActionCommand() == "fileSaveAs") {
