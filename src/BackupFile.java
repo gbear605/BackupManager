@@ -1,15 +1,17 @@
 import java.io.*;
+import java.util.ArrayList;
 
 public class BackupFile {
 
 	String name;
 	Boolean setToDelete = false;
 	String fileLocation;
-	String[] backupLocations;
+	ArrayList<String> backupLocations = new ArrayList<String>(1);
 
 	public BackupFile(String _fileLocation, String _name) {
 		name = _name;
 		fileLocation = _fileLocation;
+		backupLocations.add(Configuration.defaultBackupLocation);
 		
 	}
 
