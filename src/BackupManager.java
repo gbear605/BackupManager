@@ -238,6 +238,7 @@ public class BackupManager implements ActionListener {
 		});
 	}
 	
+	//creates an item for the output list
 	public void createItemOutputs(int id)
 	{
 		JFrame outputWindow = new JFrame("Add new outputs");
@@ -305,9 +306,7 @@ public class BackupManager implements ActionListener {
 		outputWindow.setVisible(true);
 		
 	}
-	
-	
-	
+		
 	//creates a window for naming the new backup
 	public void createAddBackupNameWindow()
 	{
@@ -381,11 +380,10 @@ public class BackupManager implements ActionListener {
 	}
 	
 	//creates a file chooser
-	public String createFileChooserWindow(int function, String fileName, int itemID)
+	public void createFileChooserWindow(int function, String fileName, int itemID)
 	{
-		JFrame fileWindow = new JFrame("Find file to backup");
+		JFrame fileWindow = new JFrame("null");
 		JFileChooser fileChooser = new JFileChooser();
-		JLabel test = new JLabel();
 		
 		//initialise window and disable main window
 		fileWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE );
@@ -395,14 +393,25 @@ public class BackupManager implements ActionListener {
 		fileWindow.setVisible(true);
 		window.setEnabled(false);	
 		window.toFront();
-		fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+		if (function == 4){	
+			fileWindow.setTitle("Choose default directory");
+			fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		} else{
+			fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+			if (function == 1){
+				fileWindow.setTitle("Add new file or folder to backup");
+			} else if (function == 2){
+				fileWindow.setTitle("Change file or folder to backup");
+			} else if (function == 3){
+				fileWindow.setTitle("Add folder to backup to");
+			}
+		}
 		fileChooser.setApproveButtonText("Backup");
-		
+		fileChooser.setCurrentDirectory(new File(Configuration.defaultBackupLocation));
   		//add file chooser to the window
   		fileWindow.add(fileChooser);
 		
 		//handles the buttons on the file chooser
-
 		fileChooser.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -417,18 +426,15 @@ public class BackupManager implements ActionListener {
 	        	  	window.setEnabled(true);
 	        	  	fileWindow.dispose();
 				}
-				
 	        }
 		});
-		
-		
+				
 		fileWindow.addWindowListener(new WindowAdapter(){
 			@Override
 			public void windowClosing(WindowEvent e) {
 				window.setEnabled(true);
 			}
 		});
-		return test.getText();
 	}
 	
 	//changes the list based on the function
@@ -437,6 +443,7 @@ public class BackupManager implements ActionListener {
 		//function 1 = add new item based off path and name
 		//function 2 = edit existing item's input
 		//function 3 = add new output to existing item
+		//function 4 = set default path
 		
 		if (function == 1){
 			backups.add(new BackupFile(file, name));
@@ -445,42 +452,166 @@ public class BackupManager implements ActionListener {
 		} else if (function == 3){
 			backups.get(id).backupLocations.add(file.getAbsolutePath());
 	    	createItemOutputs(id);
+		} else if (function == 4){
+			Configuration.defaultBackupLocation = file.getAbsolutePath();
+
+        	createSettingsWindow();
 		}
 		createGUI();
+	}
+	
+	//creates settings window
+	public void createSettingsWindow()
+	{
+		JFrame settingsWindow = new JFrame("Settings");
+		Container settingsPane = new Container();
+		GridBagConstraints gridBag = new GridBagConstraints();	
+		Box padding = Box.createHorizontalBox();
+		
+		//initialise window and disable main window
+		settingsWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE );
+		settingsWindow.setSize(500, 100);
+		settingsWindow.setResizable(false);
+		settingsWindow.setLocationRelativeTo(null);
+		window.setEnabled(false);		
+		settingsPane = settingsWindow.getContentPane();
+		settingsPane.setLayout(new GridBagLayout());
+		
+		//adds default path selector
+		//file path label
+
+		padding.add(new JLabel("Default path :"));
+		//file path textbox
+		JTextPane filePath = new JTextPane();
+		filePath.setText(Configuration.defaultBackupLocation);
+		gridBag.weightx = 1;
+		gridBag.gridx = 1;
+		gridBag.gridwidth = 3;
+		padding.add(filePath);
+		//set path button
+		JButton addFilePath = new JButton("Browse"), addDone = new JButton("Done");
+		addFilePath.addActionListener(new ActionListener() {
+	        public void actionPerformed(ActionEvent e) {
+	        	settingsWindow.dispose();
+	        	
+	        	createFileChooserWindow(4, null, 0);
+	        	filePath.setText(Configuration.defaultBackupLocation);
+
+	        		        	
+	          }
+	        });
+		gridBag.weightx = 0;
+		gridBag.gridx = 4;
+		gridBag.gridwidth = 1;
+		padding.add(addFilePath);
+		
+		//adds done button
+		addDone.addActionListener(new ActionListener() {
+	        public void actionPerformed(ActionEvent e) {
+	        	settingsWindow.dispose();
+				window.setEnabled(true);
+				window.toFront();
+	          }
+	        });
+		gridBag.weightx = 0;
+		gridBag.gridy = 1;
+		padding.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		padding.add(addFilePath);
+		gridBag.fill = GridBagConstraints.HORIZONTAL;
+		gridBag.weightx = 1;
+		gridBag.gridx = 0;
+		gridBag.gridy = 0;
+		gridBag.gridwidth = 4;
+		settingsPane.add(padding, gridBag);
+		gridBag.gridx = 3;
+		gridBag.gridy = 1;
+		gridBag.gridwidth = 1;
+		settingsPane.add(addDone, gridBag);
+		
+		
+		//close this window and return focus back to the main
+		settingsWindow.addWindowListener(new WindowAdapter(){
+			@Override
+			public void windowClosing(WindowEvent e) {
+				window.setEnabled(true);
+			}
+		});
+		settingsWindow.setVisible(true);
 	}
 	
 	//creates control panel
 	public JToolBar createControlPanel() 
 	{	
+		JToolBar controls = new JToolBar();
+		GridBagConstraints gridBag = new GridBagConstraints();	
+		JMenuBar menuBar = new JMenuBar();
+		JMenu menuFile = new JMenu("File");
+		JMenuItem fileOpen = new JMenuItem("Open"),
+				fileSave = new JMenuItem("Save"),
+				fileSaveAs = new JMenuItem("Save as"),
+				fileSettings = new JMenuItem("Settings");
+
+		controls.setFloatable(false);
+		controls.setLayout(new GridBagLayout());
+		controls.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+		
+		//menu
+		//open button
+		gridBag.fill = GridBagConstraints.HORIZONTAL;
+		gridBag.weightx = 1;
+		gridBag.gridx = 0;
+		gridBag.gridy = 0;
+		gridBag.gridwidth = 4;
+		fileOpen.setActionCommand("fileOpen");
+		fileOpen.addActionListener(this);
+		menuFile.add(fileOpen);
+		//save button
+		fileSave.setActionCommand("fileSave");
+		fileSave.addActionListener(this);
+		menuFile.add(fileSave);
+		//save as button
+		fileSaveAs.setActionCommand("fileSaveAs");
+		fileSaveAs.addActionListener(this);
+		menuFile.add(fileSaveAs);
+		menuFile.addSeparator();
+		//settings button
+		fileSettings.setActionCommand("fileSettings");
+		fileSettings.addActionListener(this);
+		menuFile.add(fileSettings);
+		menuBar.add(menuFile);
+		controls.add(menuBar, gridBag);
+		
 		//backup button
 		JButton backup = new JButton("backup");		
 	    backup.setActionCommand("backup");
 		backup.addActionListener(this);
+		gridBag.weightx = 1;
+		gridBag.gridx = 0;
+		gridBag.gridy = 1;
+		gridBag.gridwidth = 1;
+		controls.add(backup, gridBag);
 		
 		//revert button
 		JButton revert = new JButton("revert");		
 	    revert.setActionCommand("revert");
 		revert.addActionListener(this);
+		gridBag.gridx = 1;
+		controls.add(revert, gridBag);
 		
 		//add button
 		JButton add = new JButton("add");		
 	    add.setActionCommand("add");
 		add.addActionListener(this);
+		gridBag.gridx = 2;
+		controls.add(add, gridBag);
 		
 		//remove button
 		JButton remove = new JButton("remove");		
 		remove.setActionCommand("remove");
 		remove.addActionListener(this);
+		gridBag.gridx = 3;
+		controls.add(remove, gridBag);	
 
-		//puts buttons into a container
-		JToolBar controls = new JToolBar();
-		controls.setLayout(new GridLayout(1, 4));
-		controls.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-		controls.add(backup);
-		controls.add(revert);
-		controls.add(add);
-		controls.add(remove);
-		controls.setFloatable(false);
 		return controls;	
 	}
 	
@@ -511,6 +642,18 @@ public class BackupManager implements ActionListener {
         		createErrorWindow("Nothing to delete");
         	}
         }
+        
+        //menu items
+        if (e.getActionCommand() == "fileOpen") {
+        	System.out.println(e.getActionCommand());
+        } else if (e.getActionCommand() == "fileSave") {
+        	System.out.println(e.getActionCommand());
+        } else if (e.getActionCommand() == "fileSaveAs") {
+        	System.out.println(e.getActionCommand());
+        } else if (e.getActionCommand() == "fileSettings") {
+        	createSettingsWindow();
+        }
+        
     }
     
     public static Configuration readConfig() {
