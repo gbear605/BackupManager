@@ -28,6 +28,7 @@ public class BackupManager implements ActionListener {
 	Container Pane;
 	JPanel backupItems;
 	ArrayList<BackupFile> backups = new ArrayList<BackupFile>();
+	ArrayList<Boolean> checkboxStates = new ArrayList<Boolean>();
 
 	public BackupManager() {
 		
@@ -167,9 +168,9 @@ public class BackupManager implements ActionListener {
 	        public void itemStateChanged(ItemEvent e) {
 	        	if (setDelete.isSelected())
 	        	{
-	        		backups.get(count).setToDelete = true;
+	        		checkboxStates.set(count, true);
 	        	} else {
-		        	backups.get(count).setToDelete = false;
+	        		checkboxStates.set(count, false);
 	        	}
 	          }
 	        });
@@ -464,6 +465,7 @@ public class BackupManager implements ActionListener {
 		
 		if (function == 1){
 			backups.add(new BackupFile(file, name));
+			checkboxStates.add(false);
 		} else if (function == 2){
 			backups.get(id).setFileLocation(file);
 		} else if (function == 3){
@@ -638,26 +640,44 @@ public class BackupManager implements ActionListener {
     @Override
 	public void actionPerformed(ActionEvent e) {
         if (e.getActionCommand() == "backup") {
-        	for(BackupFile backup : backups) {
-        		Backup.backupFile(backup);
+        	if (checkboxStates.size() > 0 && checkboxStates.contains(true)){
+        		for (int i = checkboxStates.size() - 1; i == 0; i-- )
+        		{
+        			if (checkboxStates.get(i))
+        			{
+        				Backup.backupFile(backups.get(i));
+        				System.out.println(backups.get(i).getFileLocation());
+        			}
+        		}
+        	} else {
+        		createErrorWindow("Nothing to backup");
         	}
         }
         else if (e.getActionCommand() == "revert") {
-        	for(BackupFile revert : backups) {
-        		Backup.restoreFile(revert,true);
+        	if (checkboxStates.size() > 0 && checkboxStates.contains(true)){
+        		for (int i = checkboxStates.size() - 1; i == 0; i-- )
+        		{
+        			if (checkboxStates.get(i))
+        			{
+        				Backup.restoreFile(backups.get(i), true);
+        				System.out.println(backups.get(i).getFileLocation());
+        			}
+        		}
+        	} else {
+        		createErrorWindow("Nothing to revert");
         	}
         }
         else if (e.getActionCommand() == "add") {
         	createAddBackupNameWindow();
         }
         else if (e.getActionCommand() == "remove") {
-        	if (backups.size() > 0){
-        		for (int i = backups.size() - 1; i == 0; i-- )
+        	if (checkboxStates.size() > 0 && checkboxStates.contains(true)){
+        		for (int i = checkboxStates.size() - 1; i == 0; i-- )
         		{
-        			if (backups.get(i).setToDelete)
+        			if (checkboxStates.get(i))
         			{
         				backups.remove(i);
-
+        				checkboxStates.remove(i);
         			}
         		}
 				createGUI();
