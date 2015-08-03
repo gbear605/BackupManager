@@ -20,13 +20,10 @@ public class BackupManager implements ActionListener {
 	public static File configFile;
 	public static Configuration config;
 	
-	
 	JFrame window;
 	Container Pane;
 	JPanel backupItems;
 	ArrayList<BackupFile> backups = new ArrayList<BackupFile>();
-	private JLabel fileChooserOutput;
-
 
 	public BackupManager() {
 		
@@ -49,7 +46,6 @@ public class BackupManager implements ActionListener {
 		
 		//ADD SAVE LOADING METHOD CALL HERE		
 
-
 		
 		createGUI();
 
@@ -57,7 +53,6 @@ public class BackupManager implements ActionListener {
 		window.addWindowListener(new WindowAdapter(){
 			@Override
 			public void windowClosing(WindowEvent e) {
-				System.out.println(e.getWindow());
 				System.exit(0);
 				window.dispose();
 			}
@@ -105,11 +100,11 @@ public class BackupManager implements ActionListener {
 	//creates and populates the list
 	public Component createItemList(int offset)
 	{
-		Box listBox = Box.createVerticalBox();
+		Box listBox = Box.createVerticalBox(), boxBox = Box.createVerticalBox();
 		int count = 0;
 
-		listBox.setBorder(BorderFactory.createCompoundBorder(new EmptyBorder(5, 5, 5, 5), new LineBorder(Color.BLACK)));
-		listBox.add(createListHeader());
+		boxBox.setBorder(BorderFactory.createCompoundBorder(new EmptyBorder(5, 5, 5, 5), new LineBorder(Color.BLACK)));
+		boxBox.add(createListHeader());
 
 		for(BackupFile file : backups)
 		{
@@ -118,7 +113,10 @@ public class BackupManager implements ActionListener {
 			count++;
 		}
 		
-		return listBox;
+		JScrollPane outputScroll = new JScrollPane(listBox);
+		outputScroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		boxBox.add(outputScroll);
+		return boxBox;
 	}
 	
 	//creates the header for the list
@@ -136,14 +134,15 @@ public class BackupManager implements ActionListener {
 		headerRemove.setBorder(new EmptyBorder(5, 5, 5, 5));
 		headerName.setPreferredSize(new Dimension(106, 0));
 		headerName.setBorder(new EmptyBorder(5, 10, 5, 0));
-		headerPath.setPreferredSize(new Dimension(150, 0));
+		headerPath.setPreferredSize(new Dimension(515, 0));
 		headerPath.setBorder(new EmptyBorder(5, 0, 5, 0));
 
 		//adds labels to box
 		headerBox.add(headerName);
 		headerBox.add(headerPath);
-		headerBox.add(Box.createHorizontalGlue());
+
 		headerBox.add(headerRemove);
+		headerBox.add(Box.createHorizontalGlue());
 		
 		return headerBox;
 	}
@@ -177,15 +176,14 @@ public class BackupManager implements ActionListener {
 	    createBox.add(Box.createHorizontalGlue());
 	    chooseInput.addActionListener(new ActionListener() {
 	        public void actionPerformed(ActionEvent e) {
-	        	System.out.println("test");
 	        	createFileChooserWindow(2, _name, count);
 	          }
 	        });
 	    createBox.add(chooseInput);
 	    chooseOutputs.addActionListener(new ActionListener() {
 	        public void actionPerformed(ActionEvent e) {
-	        	System.out.println("test");
-	        	createFileChooserWindow(3, _name, count);
+	        	createItemOutputs(count);
+	        	//createFileChooserWindow(3, _name, count);
 	          }
 	        });
 	    createBox.add(chooseOutputs);
@@ -239,6 +237,76 @@ public class BackupManager implements ActionListener {
 			}
 		});
 	}
+	
+	public void createItemOutputs(int id)
+	{
+		JFrame outputWindow = new JFrame("Add new outputs");
+		Container outputPane = new Container();
+		JButton outputAdd = new JButton("Add");
+		Box listBox = Box.createVerticalBox();
+
+
+		//initialise window and disable main window
+		outputWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE );
+		outputWindow.setSize(500, 200);
+		outputWindow.setResizable(false);
+		outputWindow.setLocationRelativeTo(null);
+		window.setEnabled(false);			
+		outputPane = outputWindow.getContentPane();
+		outputPane.setLayout(new BoxLayout(outputPane, BoxLayout.PAGE_AXIS));	
+		
+		outputAdd.addActionListener(new ActionListener() {
+	        public void actionPerformed(ActionEvent e) {
+	        	createFileChooserWindow(3, backups.get(id).name, id);
+	        	outputWindow.dispose();
+	        		        	
+	          }
+	        });
+		
+
+		outputAdd.setAlignmentX(Component.CENTER_ALIGNMENT);
+		outputPane.add(outputAdd);
+
+		
+		for (int i = 0; i < backups.get(id).backupLocations.size(); i++)
+		{
+			Box itemBox = Box.createHorizontalBox();
+			JLabel labelBox = new JLabel(backups.get(id).backupLocations.get(i));
+			JButton removeButton = new JButton("Remove");
+			
+			int count = i;
+			itemBox.setBorder(BorderFactory.createCompoundBorder(new EmptyBorder(2, 2, 0, 2), new BevelBorder(1, Color.black, Color.gray)));
+			labelBox.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 0));
+			itemBox.add(labelBox);
+			itemBox.add(Box.createHorizontalGlue());
+			removeButton.addActionListener(new ActionListener() {
+		        public void actionPerformed(ActionEvent e) {
+		        	backups.get(id).backupLocations.remove(count);
+		        	outputWindow.dispose();
+		        	window.toFront();
+		        	createItemOutputs(id);		        	
+		          }
+		        });
+			itemBox.add(removeButton);
+			listBox.add(itemBox);
+		}
+		
+		JScrollPane listPane = new JScrollPane(listBox);
+		listPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		outputPane.add(listPane);
+
+		
+		outputWindow.addWindowListener(new WindowAdapter(){
+			@Override
+			public void windowClosing(WindowEvent e) {
+				window.setEnabled(true);
+			}
+		});
+		outputWindow.setVisible(true);
+		
+	}
+	
+	
 	
 	//creates a window for naming the new backup
 	public void createAddBackupNameWindow()
@@ -312,7 +380,7 @@ public class BackupManager implements ActionListener {
 		});
 	}
 	
-	//creates a filechooser
+	//creates a file chooser
 	public String createFileChooserWindow(int function, String fileName, int itemID)
 	{
 		JFrame fileWindow = new JFrame("Find file to backup");
@@ -363,6 +431,7 @@ public class BackupManager implements ActionListener {
 		return test.getText();
 	}
 	
+	//changes the list based on the function
 	public void createOrEditListItem(int function, File file, String name, int id)
 	{
 		//function 1 = add new item based off path and name
@@ -375,6 +444,7 @@ public class BackupManager implements ActionListener {
 			backups.get(id).setFileLocation(file);
 		} else if (function == 3){
 			backups.get(id).backupLocations.add(file.getAbsolutePath());
+	    	createItemOutputs(id);
 		}
 		createGUI();
 	}
@@ -410,6 +480,7 @@ public class BackupManager implements ActionListener {
 		controls.add(revert);
 		controls.add(add);
 		controls.add(remove);
+		controls.setFloatable(false);
 		return controls;	
 	}
 	
