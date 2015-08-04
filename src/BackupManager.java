@@ -17,15 +17,17 @@ import com.google.gson.Gson;
 
 public class BackupManager implements ActionListener {
 
-	public final float version = 0.01f;
+	public final String version = "0.1";
 	public static Gson gson = new Gson();
 	
+	// config is the interpreted form of configFile
 	public static File configFile;
-	public static Configuration config;
+	public static Configuration config; 
 	
 	public static String fileSearchLocation;
 	public static String defaultLocation; 
-	public static String settingsLocation;
+	
+	public static String OS;
 	
 	JFrame window;
 	Container Pane;
@@ -50,7 +52,8 @@ public class BackupManager implements ActionListener {
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE );
 		window.setResizable(false);
 		
-		
+		osSpecificOperations();
+
 		setDefaultLocations();
 		readConfig();
 		
@@ -67,6 +70,14 @@ public class BackupManager implements ActionListener {
 		window.setVisible (true);
 
 
+	}
+	
+	public void osSpecificOperations() {
+	    if(OS.contains("MAC")) {
+	    	System.setProperty("apple.laf.useScreenMenuBar", "true");
+	        System.setProperty(
+	            "com.apple.mrj.application.apple.menu.about.name", "Name");
+	    }
 	}
 	
 	//main draw method for refreshing the GUI
@@ -102,6 +113,14 @@ public class BackupManager implements ActionListener {
 		}
 
 		window.revalidate();
+	}
+	
+	public JMenuBar makeJMenuBarMac() {
+		JMenuBar menuBar = new JMenuBar();
+		JMenu fileMenu = new JMenu("File");
+        menuBar.add(fileMenu);
+
+		return menuBar;
 	}
 	
 	//creates and populates the list
@@ -288,7 +307,7 @@ public class BackupManager implements ActionListener {
 		for (int i = 0; i < config.backups.get(id).backupLocations.size(); i++)
 		{
 			Box itemBox = Box.createHorizontalBox();
-			JLabel labelBox = new JLabel(config.backups.get(id).getBackupLocations().get(i).getAbsolutePath());
+			JLabel labelBox = new JLabel(config.backups.get(id).getBackupLocations().get(i).getPath());
 			JButton removeButton = new JButton("Remove");
 			
 			int count = i;
@@ -592,9 +611,9 @@ public class BackupManager implements ActionListener {
 		GridBagConstraints gridBag = new GridBagConstraints();	
 		JMenuBar menuBar = new JMenuBar();
 		JMenu menuFile = new JMenu("File");
-		JMenuItem fileOpen = new JMenuItem("Open"),
+		JMenuItem fileOpen = new JMenuItem("Open..."),
 				fileSave = new JMenuItem("Save"),
-				fileSaveAs = new JMenuItem("Save as"),
+				fileSaveAs = new JMenuItem("Save As..."),
 				fileSettings = new JMenuItem("Settings");
 
 		controls.setFloatable(false);
@@ -625,7 +644,11 @@ public class BackupManager implements ActionListener {
 		fileSettings.addActionListener(this);
 		menuFile.add(fileSettings);
 		menuBar.add(menuFile);
-		controls.add(menuBar, gridBag);
+		if(OS.contains("MAC")) {
+			window.setJMenuBar(menuBar);
+		} else {
+			controls.add(menuBar, gridBag);
+		}
 		
 		//backup button
 		JButton backup = new JButton("backup");		
@@ -660,6 +683,7 @@ public class BackupManager implements ActionListener {
 
 		return controls;	
 	}
+	
 	
 	//add logic for buttons in here
     @Override
@@ -747,8 +771,9 @@ public class BackupManager implements ActionListener {
     public static void setConfig() {
     	try {
     		File settingsFile = new File(configFile.getAbsolutePath());
-    		if(!new File(settingsLocation).exists()) {
-    			Files.createDirectory(new File(settingsLocation).toPath());
+    		File cParent = new File(configFile.getParent());
+    		if(!cParent.exists()) {
+    			Files.createDirectory(cParent.toPath());
     		}
     		if(!settingsFile.exists()) {
     			Files.createFile(settingsFile.toPath());
@@ -762,7 +787,7 @@ public class BackupManager implements ActionListener {
     }
     
     public static void setDefaultLocations() {
-		String OS = (System.getProperty("os.name")).toUpperCase();
+		String settingsLocation;
 		if (OS.contains("WIN")) {
 		    settingsLocation = System.getenv("AppData");
 		    fileSearchLocation = "C:\\Users";
@@ -773,11 +798,14 @@ public class BackupManager implements ActionListener {
 			    settingsLocation += "/Library/Application Support";
 		    }
 		}
-		settingsLocation += File.separator + "BackupManager" + File.separator;
-		configFile = new File(settingsLocation + "settings.bkpm");
+		configFile = new File(settingsLocation + File.separator 
+				             + "BackupManager" + File.separator 
+				             + "settings.bkpm");
     }
     
 	public static void main(String[] args) {
+		OS = (System.getProperty("os.name")).toUpperCase();
+
 		new BackupManager();
 	}
 
