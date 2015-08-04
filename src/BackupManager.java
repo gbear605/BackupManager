@@ -755,9 +755,9 @@ public class BackupManager implements ActionListener {
 			}
 	    	config = gson.fromJson(text,Configuration.class);
     	} else {
-    		//TODO: create a panel to ask the user for the default backup location
-
     		config = new Configuration();
+    		
+    		//TODO: create a panel to ask the user for the default backup location
     		config.defaultBackupLocation = fileSearchLocation + File.separator + "Backups" + File.separator;	
     		if(configFile != null) {
     			setConfig();
