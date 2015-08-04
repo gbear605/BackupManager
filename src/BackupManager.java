@@ -414,10 +414,10 @@ public class BackupManager implements ActionListener {
 		window.setEnabled(false);	
 		window.toFront();
 		
-		int choice = 0;
+		int choice = -1;
 		fileChooser.setCurrentDirectory(new File(fileSearchLocation));
 
-		if (function == 4 || function == 5){
+		if (function == 4){
 			fileChooser.setDialogTitle("Choose default directory");
 			fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 			choice = fileChooser.showSaveDialog(fileWindow);
@@ -437,6 +437,7 @@ public class BackupManager implements ActionListener {
 				fileChooser.setDialogTitle("Change file or folder to backup");
 				choice = fileChooser.showOpenDialog(fileWindow);
 			} else if (function == 3){
+				fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 				fileChooser.setDialogTitle("Add folder to backup to");
 				choice = fileChooser.showOpenDialog(fileWindow);
 			} else if (function == 6){
@@ -457,6 +458,8 @@ public class BackupManager implements ActionListener {
 		if(choice == JFileChooser.APPROVE_OPTION) {
 			createOrEditListItem(function, fileChooser.getSelectedFile(), fileName, itemID);
 		} else if (choice == JFileChooser.CANCEL_OPTION) {
+		} else if(choice == JFileChooser.ERROR_OPTION) {
+			System.out.println("An error occured");
 		}
 	}
 	
