@@ -1,32 +1,32 @@
-import java.io.*;
+import java.io.File;
 import java.util.ArrayList;
 
 public class BackupFile {
-//test
+	// test
 	String name;
 	File fileLocation;
 	ArrayList<File> backupLocations = new ArrayList<File>(1);
 
-	public BackupFile(File _fileLocation, String _name) {
+	public BackupFile(final File _fileLocation, final String _name) {
 		name = _name;
 		fileLocation = _fileLocation;
 		backupLocations.add(new File(BackupManager.config.defaultBackupLocation + _fileLocation.getName()));
-		
+
 	}
 
-	public void setFileLocation(File _fileLocation) {
-		fileLocation = _fileLocation;
+	public void addBackupLocation(final File file) {
+		backupLocations.add(new File(file.toString() + "/" + fileLocation.getName()));
+	}
+
+	public ArrayList<File> getBackupLocations() {
+		return backupLocations;
 	}
 
 	public File getFileLocation() {
 		return fileLocation;
 	}
 
-	public void addBackupLocation(File file) {
-		backupLocations.add(new File(file.toString() + "/" + fileLocation.getName()));
+	public void setFileLocation(final File _fileLocation) {
+		fileLocation = _fileLocation;
 	}
-
-	public ArrayList<File> getBackupLocations() {
-		return backupLocations;
-	}	
 }

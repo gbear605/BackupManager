@@ -8,113 +8,467 @@ import java.nio.file.Files;
 
 import javax.swing.*;
 import javax.swing.border.*;
-import javax.swing.filechooser.FileFilter;
-import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.filechooser.*;
 
 import com.google.gson.Gson;
 
 public class BackupManager implements ActionListener {
 
-	public final String version = "1.0";
-	public static Gson gson = new Gson();
-	
-	// config is the interpreted form of configFile
-	public static File configFile;
-	public static Configuration config; 
-	
-	public static String fileSearchLocation;
-	public static String defaultLocation; 
-	
-	public static String OS;
-	
-	JFrame window;
-	Container Pane;
-	JPanel backupItems;
-	Boolean selectAll = false;
-	
-	//function ADD = add new item based off path and name
-	//function EDIT = edit existing item's input
-	//function ADD_OUTPUT = add new output to existing item
-	//function SET = set default path
-	//function OPEN = open backups file
-	//function SAVE = save backups file
-	
-	public enum fileChoices {
+	public enum fileChoice {
 		ADD, EDIT, ADD_OUTPUT, SET, OPEN, SAVE;
 	}
 
+	public static Gson gson = new Gson();
+
+	// config is the interpreted form of configFile
+	public static File configFile;
+	public static Configuration config;
+
+	public static String fileSearchLocation;
+	public static String defaultLocation;
+
+	public static String OS;
+
+	public static void main(final String[] args) {
+		BackupManager.OS = System.getProperty("os.name").toUpperCase();
+
+		new BackupManager();
+	}
+
+	public static void readConfig() {
+		String text = "{}";
+		if (BackupManager.configFile != null && BackupManager.configFile.exists()) {
+
+			try {
+				text = new String(Files.readAllBytes(BackupManager.configFile.toPath()));
+			} catch (final IOException e) {
+				e.printStackTrace();
+			}
+			BackupManager.config = BackupManager.gson.fromJson(text, Configuration.class);
+		} else {
+			BackupManager.config = new Configuration();
+
+			// TODO: create a panel to ask the user for the default backup
+			// location
+			BackupManager.config.defaultBackupLocation = BackupManager.fileSearchLocation + File.separator + "Backups"
+					+ File.separator;
+			if (BackupManager.configFile != null) {
+				BackupManager.setConfig();
+			}
+		}
+	}
+
+	public static void setConfig() {
+		try {
+			final File settingsFile = new File(BackupManager.configFile.getAbsolutePath());
+			final File cParent = new File(BackupManager.configFile.getParent());
+			if (!cParent.exists()) {
+				Files.createDirectory(cParent.toPath());
+			}
+			if (!settingsFile.exists()) {
+				Files.createFile(settingsFile.toPath());
+			}
+			final FileWriter file = new FileWriter(settingsFile);
+			file.write(BackupManager.gson.toJson(BackupManager.config));
+			file.close();
+		} catch (final IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void setDefaultLocations() {
+		if (BackupManager.OS.contains("WIN")) {
+			BackupManager.fileSearchLocation = "C:\\Users";
+		} else {
+			BackupManager.fileSearchLocation = System.getProperty("user.home");
+		}
+	}
+
+	// function ADD = add new item based off path and name
+	// function EDIT = edit existing item's input
+	// function ADD_OUTPUT = add new output to existing item
+	// function SET = set default path
+	// function OPEN = open backups file
+	// function SAVE = save backups file
+
+	public final String version = "1.0";
+
+	JFrame window;
+
+	Container Pane;
+
+	JPanel backupItems;
+
+	Boolean selectAll = false;
+
 	public BackupManager() {
-		
-		//sets the window's appearance based on the OS used
-		try {UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());}
-		catch (ClassNotFoundException e) {}
-		catch (InstantiationException e) {}
-		catch (IllegalAccessException e) {}
-		catch (UnsupportedLookAndFeelException e) {}
-		
-		//Makes the window and gives it an icon
+
+		// sets the window's appearance based on the OS used
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (final ClassNotFoundException e) {
+		} catch (final InstantiationException e) {
+		} catch (final IllegalAccessException e) {
+		} catch (final UnsupportedLookAndFeelException e) {
+		}
+
+		// Makes the window and gives it an icon
 		window = new JFrame("Backup Manager " + version);
 		window.setSize(700, 500);
 		window.setLocationRelativeTo(null);
 		Pane = window.getContentPane();
 		Pane.setLayout(new GridBagLayout());
-		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE );
+		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		window.setResizable(false);
-		
-		osSpecificOperations();
-		
-		setDefaultLocations();
 
-		readConfig();		
+		osSpecificOperations();
+
+		BackupManager.setDefaultLocations();
+
+		BackupManager.readConfig();
 
 		createGUI();
 
-		//handles closing
-		window.addWindowListener(new WindowAdapter(){
+		// handles closing
+		window.addWindowListener(new WindowAdapter() {
 			@Override
-			public void windowClosing(WindowEvent e) {
+			public void windowClosing(final WindowEvent e) {
 				System.exit(0);
 				window.dispose();
 			}
 		});
-		window.setVisible (true);
-
+		window.setVisible(true);
 
 	}
-	
-	public void osSpecificOperations() {
-	    if(OS.contains("MAC")) {
-	    	System.setProperty("apple.laf.useScreenMenuBar", "true");
-	        System.setProperty(
-	            "com.apple.mrj.application.apple.menu.about.name", "Name");
-	    }
+
+	// add logic for buttons in here
+	@Override
+	public void actionPerformed(final ActionEvent e) {
+		if (e.getActionCommand() == "backup") {
+			if (BackupManager.config.checkboxStates.size() > 0 && BackupManager.config.checkboxStates.contains(true)) {
+				for (int i = BackupManager.config.checkboxStates.size() - 1; i >= 0; i--) {
+					if (BackupManager.config.checkboxStates.get(i)) {
+						Backup.backupFile(BackupManager.config.backups.get(i));
+					}
+				}
+			} else {
+				createErrorWindow("Nothing to backup");
+			}
+		} else if (e.getActionCommand() == "revert") {
+			if (BackupManager.config.checkboxStates.size() > 0 && BackupManager.config.checkboxStates.contains(true)) {
+				for (int i = BackupManager.config.checkboxStates.size() - 1; i == 0; i--) {
+					if (BackupManager.config.checkboxStates.get(i)) {
+						Backup.restoreFile(BackupManager.config.backups.get(i), true);
+					}
+				}
+			} else {
+				createErrorWindow("Nothing to revert");
+			}
+		} else if (e.getActionCommand() == "add") {
+			createAddBackupNameWindow();
+		} else if (e.getActionCommand() == "remove") {
+			if (BackupManager.config.checkboxStates.size() > 0 && BackupManager.config.checkboxStates.contains(true)) {
+				for (int i = BackupManager.config.checkboxStates.size() - 1; i >= 0; i--) {
+					if (BackupManager.config.checkboxStates.get(i)) {
+						BackupManager.config.backups.remove(i);
+						BackupManager.config.checkboxStates.remove(i);
+					}
+				}
+				createGUI();
+			} else {
+				createErrorWindow("Nothing to delete");
+			}
+		}
+
+		// menu items
+		if (e.getActionCommand() == "fileOpen") {
+			createFileChooserWindow(fileChoice.OPEN, null, 0);
+		} else if (e.getActionCommand() == "fileSave") {
+			if (BackupManager.configFile != null && BackupManager.configFile.exists()) {
+				BackupManager.setConfig();
+			} else {
+				createFileChooserWindow(fileChoice.SAVE, null, 0);
+			}
+		} else if (e.getActionCommand() == "fileSaveAs") {
+			createFileChooserWindow(fileChoice.SAVE, null, 0);
+		} else if (e.getActionCommand() == "fileSettings") {
+			createSettingsWindow();
+		}
+
 	}
-	
-	//main draw method for refreshing the GUI
-	public void createGUI()
-	{
-		Component[] comps = Pane.getComponents();
-		GridBagConstraints gridBag = new GridBagConstraints();	
-		
-		if (comps.length == 2)
-		{
+
+	// creates a window for naming the new backup
+	public void createAddBackupNameWindow() {
+		final JFrame nameWindow = new JFrame("Name backup");
+		Container namePane = new Container();
+		JButton setName, cancelName;
+		final JTextPane nameInput = new JTextPane();
+
+		// initialise window and disable main window
+		nameWindow.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		nameWindow.setSize(250, 70);
+		nameWindow.setResizable(false);
+		nameWindow.setLocationRelativeTo(null);
+		nameWindow.setVisible(true);
+		window.setEnabled(false);
+		namePane = nameWindow.getContentPane();
+
+		// layout manager
+		namePane.setLayout(new GridBagLayout());
+		final GridBagConstraints gridBag = new GridBagConstraints();
+
+		// add components
+		// Done button
+		gridBag.fill = GridBagConstraints.HORIZONTAL;
+		gridBag.gridx = 0;
+		gridBag.gridy = 1;
+		gridBag.weightx = 0.5;
+		setName = new JButton("Done");
+		namePane.add(setName, gridBag);
+
+		// Cancel button
+		gridBag.gridx = 1;
+		gridBag.gridy = 1;
+		gridBag.weightx = 0.5;
+		cancelName = new JButton("Cancel");
+		namePane.add(cancelName, gridBag);
+
+		// Text Pane
+		gridBag.gridwidth = 2;
+		gridBag.gridx = 0;
+		gridBag.gridy = 0;
+		gridBag.weightx = 0;
+		nameInput.setBorder(BorderFactory.createLineBorder(Color.black));
+		namePane.add(nameInput, gridBag);
+
+		// handles the button inputs
+		setName.addActionListener(e -> {
+			createFileChooserWindow(fileChoice.ADD, nameInput.getText(), 0);
+			nameWindow.dispose();
+		});
+		cancelName.addActionListener(e -> {
+			nameWindow.dispose();
+			window.setEnabled(true);
+			window.toFront();
+		});
+
+		// close this window and return focus back to the main
+		nameWindow.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(final WindowEvent e) {
+				window.setEnabled(true);
+			}
+		});
+	}
+
+	// creates control panel
+	public JToolBar createControlPanel() {
+		final JToolBar controls = new JToolBar();
+		final GridBagConstraints gridBag = new GridBagConstraints();
+		final JMenuBar menuBar = new JMenuBar();
+		final JMenu menuFile = new JMenu("File");
+		final JMenuItem fileOpen = new JMenuItem("Open..."), fileSave = new JMenuItem("Save"),
+				fileSaveAs = new JMenuItem("Save As..."), fileSettings = new JMenuItem("Settings");
+
+		controls.setFloatable(false);
+		controls.setLayout(new GridBagLayout());
+		controls.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+		// menu
+		// open button
+		gridBag.fill = GridBagConstraints.HORIZONTAL;
+		gridBag.weightx = 1;
+		gridBag.gridx = 0;
+		gridBag.gridy = 0;
+		gridBag.gridwidth = 4;
+		fileOpen.setActionCommand("fileOpen");
+		fileOpen.addActionListener(this);
+		menuFile.add(fileOpen);
+		// save button
+		fileSave.setActionCommand("fileSave");
+		fileSave.addActionListener(this);
+		menuFile.add(fileSave);
+		// save as button
+		fileSaveAs.setActionCommand("fileSaveAs");
+		fileSaveAs.addActionListener(this);
+		menuFile.add(fileSaveAs);
+		menuFile.addSeparator();
+		// settings button
+		fileSettings.setActionCommand("fileSettings");
+		fileSettings.addActionListener(this);
+		menuFile.add(fileSettings);
+		menuBar.add(menuFile);
+		if (BackupManager.OS.contains("MAC")) {
+			window.setJMenuBar(menuBar);
+		} else {
+			controls.add(menuBar, gridBag);
+		}
+
+		// backup button
+		final JButton backup = new JButton("backup");
+		backup.setActionCommand("backup");
+		backup.addActionListener(this);
+		gridBag.weightx = 1;
+		gridBag.gridx = 0;
+		gridBag.gridy = 1;
+		gridBag.gridwidth = 1;
+		controls.add(backup, gridBag);
+
+		// revert button
+		final JButton revert = new JButton("revert");
+		revert.setActionCommand("revert");
+		revert.addActionListener(this);
+		gridBag.gridx = 1;
+		controls.add(revert, gridBag);
+
+		// add button
+		final JButton add = new JButton("add");
+		add.setActionCommand("add");
+		add.addActionListener(this);
+		gridBag.gridx = 2;
+		controls.add(add, gridBag);
+
+		// remove button
+		final JButton remove = new JButton("remove");
+		remove.setActionCommand("remove");
+		remove.addActionListener(this);
+		gridBag.gridx = 3;
+		controls.add(remove, gridBag);
+
+		return controls;
+	}
+
+	// creates error pop-up with specified message
+	public void createErrorWindow(final String error) {
+		final JFrame errorWindow = new JFrame("Error");
+		Container errorPane = new Container();
+		final JButton errorButton = new JButton("Okay");
+		final JLabel errorMessage = new JLabel(error);
+
+		// initialise window and disable main window
+		errorWindow.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		errorWindow.setSize(250, 70);
+		errorWindow.setResizable(false);
+		errorWindow.setLocationRelativeTo(null);
+		window.setEnabled(false);
+		errorPane = errorWindow.getContentPane();
+		errorPane.setLayout(new BoxLayout(errorPane, BoxLayout.PAGE_AXIS));
+
+		// initialises buttons
+		errorMessage.setAlignmentX(Component.CENTER_ALIGNMENT);
+		errorButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		errorButton.addActionListener(e -> {
+			errorWindow.dispose();
+			window.setEnabled(true);
+			window.toFront();
+		});
+
+		// adds buttons to pane
+		errorPane.add(errorMessage);
+		errorPane.add(errorButton);
+
+		errorWindow.setVisible(true);
+
+		// close this window and return focus back to the main
+		errorWindow.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(final WindowEvent e) {
+				window.setEnabled(true);
+			}
+		});
+	}
+
+	// creates a file chooser
+	public void createFileChooserWindow(final fileChoice function, final String fileName, final int itemID) {
+		final JFileChooser fileChooser = new JFileChooser();
+
+		window.setEnabled(false);
+		window.toFront();
+
+		int choice = -1;
+		fileChooser.setCurrentDirectory(new File(BackupManager.fileSearchLocation));
+		fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+
+		String dialogTitle = "error";
+
+		switch (function) {
+		case ADD:
+			dialogTitle = "Add file or folder to backup";
+			break;
+		case EDIT:
+			dialogTitle = "Change file or folder to backup";
+			break;
+		case ADD_OUTPUT:
+			fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			dialogTitle = "Add folder to backup to";
+			break;
+		case SET:
+			dialogTitle = "Choose default directory";
+			fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			break;
+		case OPEN:
+			FileFilter bkpmFile = new FileNameExtensionFilter("bkpm files", "bkpm");
+			dialogTitle = "Open backup file";
+			fileChooser.addChoosableFileFilter(bkpmFile);
+			fileChooser.setFileFilter(bkpmFile);
+			break;
+		case SAVE:
+			bkpmFile = new FileNameExtensionFilter("bkpm files", "bkpm");
+			dialogTitle = "Save backup file";
+			fileChooser.addChoosableFileFilter(bkpmFile);
+			fileChooser.setFileFilter(bkpmFile);
+			break;
+		}
+		fileChooser.setDialogTitle(dialogTitle);
+
+		switch (function) {
+		case ADD:
+		case EDIT:
+		case ADD_OUTPUT:
+		case OPEN:
+		case SET:
+			choice = fileChooser.showOpenDialog(new JFrame("null"));
+			break;
+		case SAVE:
+			choice = fileChooser.showSaveDialog(new JFrame("null"));
+			break;
+		}
+
+		window.setEnabled(true);
+		window.toFront();
+
+		// handles the buttons on the file chooser
+		if (choice == JFileChooser.APPROVE_OPTION) {
+			createOrEditListItem(function, fileChooser.getSelectedFile(), fileName, itemID);
+		} else if (choice == JFileChooser.CANCEL_OPTION) {
+		} else if (choice == JFileChooser.ERROR_OPTION) {
+			System.out.println("An error occured");
+		}
+	}
+
+	// main draw method for refreshing the GUI
+	public void createGUI() {
+		final Component[] comps = Pane.getComponents();
+		final GridBagConstraints gridBag = new GridBagConstraints();
+
+		if (comps.length == 2) {
 			Pane.remove(comps[1]);
-			//backup list
+			// backup list
 			gridBag.fill = GridBagConstraints.BOTH;
 			gridBag.weighty = 1;
 			gridBag.gridy = 1;
 			Pane.add(createItemList(0), gridBag);
 		} else {
-			
-			//adds control panel and backup list to main window
-			//control panel
+
+			// adds control panel and backup list to main window
+			// control panel
 			gridBag.fill = GridBagConstraints.HORIZONTAL;
 			gridBag.weightx = 1;
 			gridBag.gridx = 0;
 			gridBag.gridy = 0;
 			Pane.add(createControlPanel(), gridBag);
-			
-			//backup list
+
+			// backup list
 			gridBag.fill = GridBagConstraints.BOTH;
 			gridBag.weighty = 1;
 			gridBag.gridy = 1;
@@ -124,454 +478,243 @@ public class BackupManager implements ActionListener {
 
 		window.revalidate();
 	}
-	
-	//creates and populates the list
-	public Component createItemList(int offset)
-	{
-		Box listBox = Box.createVerticalBox(), boxBox = Box.createVerticalBox();
+
+	// creates and populates the list
+	public Component createItemList(final int offset) {
+		final Box listBox = Box.createVerticalBox(), boxBox = Box.createVerticalBox();
 		int count = 0;
 
 		boxBox.setBorder(BorderFactory.createCompoundBorder(new EmptyBorder(5, 5, 5, 5), new LineBorder(Color.BLACK)));
 		boxBox.add(createListHeader());
 
-		for(BackupFile file : config.backups)
-		{
+		for (final BackupFile file : BackupManager.config.backups) {
 			listBox.add(createListItem(file.name, file.fileLocation.toString(), count));
 			count++;
 		}
-		
-		JScrollPane outputScroll = new JScrollPane(listBox);
+
+		final JScrollPane outputScroll = new JScrollPane(listBox);
 		outputScroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		boxBox.add(outputScroll);
 		return boxBox;
 	}
-	
-	//creates the header for the list
-	public Component createListHeader()
-	{
-		Box headerBox = Box.createHorizontalBox();
-		JLabel headerName = new JLabel("Backup name"),
-				headerPath = new JLabel("Backup path");
-		JCheckBox headerCheckBox = new JCheckBox();
-		
-		//set border
+
+	// creates an item for the output list
+	public void createItemOutputs(final int id) {
+		final JFrame outputWindow = new JFrame("Add new outputs");
+		Container outputPane = new Container();
+		final JButton outputAdd = new JButton("Add");
+		final Box listBox = Box.createVerticalBox();
+
+		// initialise window and disable main window
+		outputWindow.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		outputWindow.setSize(500, 200);
+		outputWindow.setResizable(false);
+		outputWindow.setLocationRelativeTo(null);
+		window.setEnabled(false);
+		outputPane = outputWindow.getContentPane();
+		outputPane.setLayout(new BoxLayout(outputPane, BoxLayout.PAGE_AXIS));
+
+		outputAdd.addActionListener(e -> {
+			createFileChooserWindow(fileChoice.ADD_OUTPUT, BackupManager.config.backups.get(id).name, id);
+			outputWindow.dispose();
+
+		});
+
+		outputAdd.setAlignmentX(Component.CENTER_ALIGNMENT);
+		outputPane.add(outputAdd);
+
+		for (int i = 0; i < BackupManager.config.backups.get(id).backupLocations.size(); i++) {
+			final Box itemBox = Box.createHorizontalBox();
+			final JLabel labelBox = new JLabel(
+					BackupManager.config.backups.get(id).getBackupLocations().get(i).getPath());
+			final JButton removeButton = new JButton("Remove");
+
+			final int count = i;
+			itemBox.setBorder(BorderFactory.createCompoundBorder(new EmptyBorder(2, 2, 0, 2),
+					new BevelBorder(1, Color.black, Color.gray)));
+			labelBox.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 0));
+			itemBox.add(labelBox);
+			itemBox.add(Box.createHorizontalGlue());
+			removeButton.addActionListener(e -> {
+				BackupManager.config.backups.get(id).backupLocations.remove(count);
+				outputWindow.dispose();
+				window.toFront();
+				createItemOutputs(id);
+			});
+			itemBox.add(removeButton);
+			listBox.add(itemBox);
+		}
+
+		final JScrollPane listPane = new JScrollPane(listBox);
+		listPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		outputPane.add(listPane);
+
+		outputWindow.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(final WindowEvent e) {
+				window.setEnabled(true);
+			}
+		});
+		outputWindow.setVisible(true);
+
+	}
+
+	// creates the header for the list
+	public Component createListHeader() {
+		final Box headerBox = Box.createHorizontalBox();
+		final JLabel headerName = new JLabel("Backup name"), headerPath = new JLabel("Backup path");
+		final JCheckBox headerCheckBox = new JCheckBox();
+
+		// set border
 		headerBox.setBorder(new LineBorder(Color.black));
 
-		//initialises labels
+		// initialises labels
 		headerName.setPreferredSize(new Dimension(106, 0));
 		headerName.setBorder(new EmptyBorder(5, 10, 5, 0));
 		headerPath.setPreferredSize(new Dimension(529, 0));
 		headerPath.setBorder(new EmptyBorder(5, 0, 5, 0));
 		headerCheckBox.setSelected(selectAll);
-		headerCheckBox.addItemListener(new ItemListener() {
-	        public void itemStateChanged(ItemEvent e) {
-	        	for(int i = config.checkboxStates.size() - 1; i >= 0; i-- ){
-	        		config.checkboxStates.set(i, headerCheckBox.isSelected());
-		        	selectAll = headerCheckBox.isSelected();
-		        	createGUI();
-	        	}
-	          }
-	        });
-		
-		//adds labels to box
+		headerCheckBox.addItemListener(e -> {
+			for (int i = BackupManager.config.checkboxStates.size() - 1; i >= 0; i--) {
+				BackupManager.config.checkboxStates.set(i, headerCheckBox.isSelected());
+				selectAll = headerCheckBox.isSelected();
+				createGUI();
+			}
+		});
+
+		// adds labels to box
 		headerBox.add(headerName);
 		headerBox.add(headerPath);
 
 		headerBox.add(headerCheckBox);
 		headerBox.add(Box.createHorizontalGlue());
-		
+
 		return headerBox;
 	}
-	
-	//creates an item for the list
-	public Component createListItem(String _name, String _fileLocation, int count)
-	{
-		JLabel name = new JLabel(_name);
-	    Box createBox = Box.createHorizontalBox();
-	    JCheckBox setDelete = new JCheckBox();
-	    JButton chooseInput = new JButton("in"), chooseOutputs = new JButton("out");
 
-	    //sets up the name label
-	    name.setBorder(new EmptyBorder(5, 5, 5, 0));
-	    name.setPreferredSize(new Dimension(100, 0));
-	    
-	    setDelete.setSelected(config.checkboxStates.get(count));
-	    setDelete.addItemListener(new ItemListener() {
-	        public void itemStateChanged(ItemEvent e) {
-	        	if (setDelete.isSelected())
-	        	{
-	        		config.checkboxStates.set(count, true);
-	        	} else {
-	        		config.checkboxStates.set(count, false);
-	        	}
-	          }
-	        });
-	    
-	    //adds to the box and makes sure everything has spaces
+	// creates an item for the list
+	public Component createListItem(final String _name, final String _fileLocation, final int count) {
+		final JLabel name = new JLabel(_name);
+		final Box createBox = Box.createHorizontalBox();
+		final JCheckBox setDelete = new JCheckBox();
+		final JButton chooseInput = new JButton("in"), chooseOutputs = new JButton("out");
+
+		// sets up the name label
+		name.setBorder(new EmptyBorder(5, 5, 5, 0));
+		name.setPreferredSize(new Dimension(100, 0));
+
+		setDelete.setSelected(BackupManager.config.checkboxStates.get(count));
+		setDelete.addItemListener(e -> {
+			if (setDelete.isSelected()) {
+				BackupManager.config.checkboxStates.set(count, true);
+			} else {
+				BackupManager.config.checkboxStates.set(count, false);
+			}
+		});
+
+		// adds to the box and makes sure everything has spaces
 		createBox.add(name);
 		createBox.add(new JLabel(_fileLocation));
-	    createBox.add(Box.createHorizontalGlue());
-	    chooseInput.addActionListener(new ActionListener() {
-	        public void actionPerformed(ActionEvent e) {
-	        	createFileChooserWindow(2, _name, count);
-	          }
-	        });
-	    createBox.add(chooseInput);
-	    chooseOutputs.addActionListener(new ActionListener() {
-	        public void actionPerformed(ActionEvent e) {
-	        	createItemOutputs(count);
-	        	//createFileChooserWindow(3, _name, count);
-	          }
-	        });
-	    createBox.add(chooseOutputs);
-	    createBox.add(setDelete);
-	    createBox.setBorder(BorderFactory.createCompoundBorder(new EmptyBorder(5, 5, 0, 5), new BevelBorder(1, Color.black, Color.gray)));
-	    
+		createBox.add(Box.createHorizontalGlue());
+		chooseInput.addActionListener(e -> createFileChooserWindow(fileChoice.EDIT, _name, count));
+		createBox.add(chooseInput);
+		chooseOutputs.addActionListener(e -> createItemOutputs(count));
+		createBox.add(chooseOutputs);
+		createBox.add(setDelete);
+		createBox.setBorder(BorderFactory.createCompoundBorder(new EmptyBorder(5, 5, 0, 5),
+				new BevelBorder(1, Color.black, Color.gray)));
 
 		return createBox;
 	}
-	
-	//creates error pop-up with specified message
-	public void createErrorWindow(String error)
-	{
-		JFrame errorWindow = new JFrame("Error");
-		Container errorPane = new Container();
-		JButton errorButton = new JButton("Okay");
-		JLabel errorMessage = new JLabel(error);
-		
-		//initialise window and disable main window
-		errorWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE );
-		errorWindow.setSize(250, 70);
-		errorWindow.setResizable(false);
-		errorWindow.setLocationRelativeTo(null);
-		window.setEnabled(false);		
-		errorPane = errorWindow.getContentPane();
-		errorPane.setLayout(new BoxLayout(errorPane, BoxLayout.PAGE_AXIS));
-		
-		//initialises buttons
-		errorMessage.setAlignmentX(Component.CENTER_ALIGNMENT);
-		errorButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-		errorButton.addActionListener(new ActionListener() {
-		      @Override
-			public void actionPerformed(ActionEvent e) {
-		    	  	errorWindow.dispose();
-		  			window.setEnabled(true);
-		  			window.toFront();
-		        }
-		      });
-		
-		//adds buttons to pane
-		errorPane.add(errorMessage);
-		errorPane.add(errorButton);
 
-		errorWindow.setVisible(true);
-		
-		//close this window and return focus back to the main
-		errorWindow.addWindowListener(new WindowAdapter(){
-			@Override
-			public void windowClosing(WindowEvent e) {
-				window.setEnabled(true);
+	// changes the list based on the function
+	public void createOrEditListItem(final fileChoice function, final File file, String name, final int id) {
+		switch (function) {
+		case ADD:
+			BackupManager.config.backups.add(new BackupFile(file, name));
+			BackupManager.config.checkboxStates.add(false);
+			break;
+		case EDIT:
+			BackupManager.config.backups.get(id).setFileLocation(file);
+			break;
+		case ADD_OUTPUT:
+			BackupManager.config.backups.get(id).addBackupLocation(file);
+			createItemOutputs(id);
+			break;
+		case SET:
+			BackupManager.config.defaultBackupLocation = file.getAbsolutePath();
+			createSettingsWindow();
+			break;
+		case OPEN:
+			BackupManager.configFile = file.getAbsoluteFile();
+			BackupManager.readConfig();
+			break;
+		case SAVE:
+			BackupManager.configFile = file.getAbsoluteFile();
+			name = BackupManager.configFile.getName();
+			if (name.length() < 4 || !name.substring(name.length() - 5, name.length()).equals(".bkpm")) {
+				BackupManager.configFile = new File(file.getParentFile() + File.separator + name + ".bkpm");
 			}
-		});
-	}
-	
-	//creates an item for the output list
-	public void createItemOutputs(int id)
-	{
-		JFrame outputWindow = new JFrame("Add new outputs");
-		Container outputPane = new Container();
-		JButton outputAdd = new JButton("Add");
-		Box listBox = Box.createVerticalBox();
-
-
-		//initialise window and disable main window
-		outputWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE );
-		outputWindow.setSize(500, 200);
-		outputWindow.setResizable(false);
-		outputWindow.setLocationRelativeTo(null);
-		window.setEnabled(false);			
-		outputPane = outputWindow.getContentPane();
-		outputPane.setLayout(new BoxLayout(outputPane, BoxLayout.PAGE_AXIS));	
-		
-		outputAdd.addActionListener(new ActionListener() {
-	        public void actionPerformed(ActionEvent e) {
-	        	createFileChooserWindow(3, config.backups.get(id).name, id);
-	        	outputWindow.dispose();
-	        		        	
-	          }
-	        });
-		
-
-		outputAdd.setAlignmentX(Component.CENTER_ALIGNMENT);
-		outputPane.add(outputAdd);
-
-		
-		for (int i = 0; i < config.backups.get(id).backupLocations.size(); i++)
-		{
-			Box itemBox = Box.createHorizontalBox();
-			JLabel labelBox = new JLabel(config.backups.get(id).getBackupLocations().get(i).getPath());
-			JButton removeButton = new JButton("Remove");
-			
-			int count = i;
-			itemBox.setBorder(BorderFactory.createCompoundBorder(new EmptyBorder(2, 2, 0, 2), new BevelBorder(1, Color.black, Color.gray)));
-			labelBox.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 0));
-			itemBox.add(labelBox);
-			itemBox.add(Box.createHorizontalGlue());
-			removeButton.addActionListener(new ActionListener() {
-		        public void actionPerformed(ActionEvent e) {
-		        	config.backups.get(id).backupLocations.remove(count);
-		        	outputWindow.dispose();
-		        	window.toFront();
-		        	createItemOutputs(id);		        	
-		          }
-		        });
-			itemBox.add(removeButton);
-			listBox.add(itemBox);
+			BackupManager.setConfig();
+			break;
 		}
-		
-		JScrollPane listPane = new JScrollPane(listBox);
-		listPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-		outputPane.add(listPane);
 
-		
-		outputWindow.addWindowListener(new WindowAdapter(){
-			@Override
-			public void windowClosing(WindowEvent e) {
-				window.setEnabled(true);
-			}
-		});
-		outputWindow.setVisible(true);
-		
-	}
-		
-	//creates a window for naming the new backup
-	public void createAddBackupNameWindow()
-	{
-		JFrame nameWindow = new JFrame("Name backup");
-		Container namePane = new Container();
-		JButton setName, cancelName;
-		JTextPane nameInput = new JTextPane();
-		
-		//initialise window and disable main window
-		nameWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE );
-		nameWindow.setSize(250, 70);
-		nameWindow.setResizable(false);
-		nameWindow.setLocationRelativeTo(null);
-		nameWindow.setVisible(true);
-		window.setEnabled(false);		
-		namePane = nameWindow.getContentPane();
-		
-		//layout manager
-		namePane.setLayout(new GridBagLayout());
-		GridBagConstraints gridBag = new GridBagConstraints();
-		
-		//add components
-		//Done button
-		gridBag.fill = GridBagConstraints.HORIZONTAL;
-		gridBag.gridx = 0;
-		gridBag.gridy = 1;
-		gridBag.weightx = 0.5;
-		setName = new JButton("Done");
-		namePane.add(setName, gridBag);
-
-		//Cancel button
-		gridBag.gridx = 1;
-		gridBag.gridy = 1;
-		gridBag.weightx = 0.5;
-		cancelName = new JButton("Cancel");
-		namePane.add(cancelName, gridBag);
-		
-		//Text Pane
-		gridBag.gridwidth = 2;
-		gridBag.gridx = 0;
-		gridBag.gridy = 0;
-		gridBag.weightx = 0;
-		nameInput.setBorder(BorderFactory.createLineBorder(Color.black));
-		namePane.add(nameInput, gridBag);
-		
-		//handles the button inputs
-		setName.addActionListener(new ActionListener() {
-		      @Override
-			public void actionPerformed(ActionEvent e) {
-		    	  createFileChooserWindow(1, nameInput.getText(), 0);
-		    	  nameWindow.dispose();
-		        }
-		      });
-		cancelName.addActionListener(new ActionListener() {
-		      @Override
-			public void actionPerformed(ActionEvent e) {
-		    	  nameWindow.dispose();
-		    	  window.setEnabled(true);
-		    	  window.toFront();
-		        }
-		      });
-
-		//close this window and return focus back to the main
-		nameWindow.addWindowListener(new WindowAdapter(){
-			@Override
-			public void windowClosing(WindowEvent e) {
-				window.setEnabled(true);
-			}
-		});
-	}
-	
-	//creates a file chooser
-	public void createFileChooserWindow(int function, String fileName, int itemID)
-	{
-		JFileChooser fileChooser = new JFileChooser();
-		
-		window.setEnabled(false);	
-		window.toFront();
-		
-		int choice = -1;
-		fileChooser.setCurrentDirectory(new File(fileSearchLocation));
-		fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-
-		String dialogTitle = "error";
-		
-		switch(function) {
-			case 1 : {
-				dialogTitle = "Add file or folder to backup";
-				break;
-			} case 2 : {
-				dialogTitle = "Change file or folder to backup";
-				break;
-			} case 3 : {
-				fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-				dialogTitle = "Add folder to backup to";
-				break;
-			} case 4 : {
-				dialogTitle = "Choose default directory";
-				fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-				break;
-			} case 5 : {
-				FileFilter bkpmFile = new FileNameExtensionFilter(
-					    "bkpm files", "bkpm");
-				dialogTitle = "Open backup file";
-				fileChooser.addChoosableFileFilter(bkpmFile);
-				fileChooser.setFileFilter(bkpmFile);
-				break;
-			} case 6 : {
-				FileFilter bkpmFile = new FileNameExtensionFilter(
-					    "bkpm files", "bkpm");
-				dialogTitle = "Save backup file";
-				fileChooser.addChoosableFileFilter(bkpmFile);
-				fileChooser.setFileFilter(bkpmFile);
-				break;
-			}
-		}
-		fileChooser.setDialogTitle(dialogTitle);
-
-		if(function == 1 || function == 2 || function == 3 || function == 5) {
-			choice = fileChooser.showOpenDialog(new JFrame("null"));
-		} else if (function == 4 || function == 6) {
-			choice = fileChooser.showSaveDialog(new JFrame("null"));
-		}
-	    
-		window.setEnabled(true);
-		window.toFront();
-
-		//handles the buttons on the file chooser
-		if(choice == JFileChooser.APPROVE_OPTION) {
-			createOrEditListItem(function, fileChooser.getSelectedFile(), fileName, itemID);
-		} else if (choice == JFileChooser.CANCEL_OPTION) {
-		} else if(choice == JFileChooser.ERROR_OPTION) {
-			System.out.println("An error occured");
-		}
-	}
-	
-	//changes the list based on the function
-	public void createOrEditListItem(int function, File file, String name, int id)
-	{
-		
-		
-		if (function == 1) {
-			config.backups.add(new BackupFile(file, name));
-			config.checkboxStates.add(false);
-		} else if (function == 2) {
-			config.backups.get(id).setFileLocation(file);
-		} else if (function == 3) {
-			config.backups.get(id).addBackupLocation(file);
-	    	createItemOutputs(id);
-		} else if (function == 4) {
-			config.defaultBackupLocation = file.getAbsolutePath();
-        	createSettingsWindow();
-		} else if (function == 5) {
-			configFile = file.getAbsoluteFile();
-			readConfig();
-		} else if (function == 6) {
-			configFile = file.getAbsoluteFile();
-			name = configFile.getName();
-			if(name.length() < 4 || !name.substring(name.length()-5, name.length()).equals(".bkpm")) {
-				configFile = new File(file.getParentFile() + File.separator + name + ".bkpm");
-			}
-			setConfig();
-		}
-		
-		
 		createGUI();
 	}
-	
-	//creates settings window
-	public void createSettingsWindow()
-	{
-		JFrame settingsWindow = new JFrame("Settings");
+
+	// creates settings window
+	public void createSettingsWindow() {
+		final JFrame settingsWindow = new JFrame("Settings");
 		Container settingsPane = new Container();
-		GridBagConstraints gridBag = new GridBagConstraints();	
-		Box padding = Box.createHorizontalBox();
-		
-		//initialise window and disable main window
-		settingsWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE );
+		final GridBagConstraints gridBag = new GridBagConstraints();
+		final Box padding = Box.createHorizontalBox();
+
+		// initialise window and disable main window
+		settingsWindow.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		settingsWindow.setSize(500, 100);
 		settingsWindow.setResizable(false);
 		settingsWindow.setLocationRelativeTo(null);
-		window.setEnabled(false);		
+		window.setEnabled(false);
 		settingsPane = settingsWindow.getContentPane();
 		settingsPane.setLayout(new GridBagLayout());
-		
-		//adds default path selector
-		//file path label
+
+		// adds default path selector
+		// file path label
 
 		padding.add(new JLabel("Default path :"));
-		//file path textbox
-		JTextPane filePath = new JTextPane();
-		filePath.setText(config.defaultBackupLocation);
+		// file path textbox
+		final JTextPane filePath = new JTextPane();
+		filePath.setText(BackupManager.config.defaultBackupLocation);
 		gridBag.weightx = 1;
 		gridBag.gridx = 1;
 		gridBag.gridwidth = 3;
 		padding.add(filePath);
-		//set path button
-		JButton addFilePath = new JButton("Browse"), addDone = new JButton("Done");
-		addFilePath.addActionListener(new ActionListener() {
-	        public void actionPerformed(ActionEvent e) {
-	        	settingsWindow.dispose();
-	        	
-	        	createFileChooserWindow(4, null, 0);
-	        	filePath.setText(config.defaultBackupLocation);
+		// set path button
+		final JButton addFilePath = new JButton("Browse"), addDone = new JButton("Done");
+		addFilePath.addActionListener(e -> {
+			settingsWindow.dispose();
 
-	        		        	
-	          }
-	        });
+			createFileChooserWindow(fileChoice.SET, null, 0);
+			filePath.setText(BackupManager.config.defaultBackupLocation);
+
+		});
 		gridBag.weightx = 0;
 		gridBag.gridx = 4;
 		gridBag.gridwidth = 1;
 		padding.add(addFilePath);
-		
-		//adds done button
-		addDone.addActionListener(new ActionListener() {
-	        public void actionPerformed(ActionEvent e) {
-	        	settingsWindow.dispose();
-				window.setEnabled(true);
-				window.toFront();
-				String path = filePath.getText();
-				if(!path.substring(path.length()-1, path.length()).equals(File.separator)) {
-					config.defaultBackupLocation = path + File.separator;
-				}
-				else { 
-					config.defaultBackupLocation = path;
-				}
-	          }
-	        });
+
+		// adds done button
+		addDone.addActionListener(e -> {
+			settingsWindow.dispose();
+			window.setEnabled(true);
+			window.toFront();
+			final String path = filePath.getText();
+			if (!path.substring(path.length() - 1, path.length()).equals(File.separator)) {
+				BackupManager.config.defaultBackupLocation = path + File.separator;
+			} else {
+				BackupManager.config.defaultBackupLocation = path;
+			}
+		});
 		gridBag.weightx = 0;
 		gridBag.gridy = 1;
 		padding.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -586,215 +729,22 @@ public class BackupManager implements ActionListener {
 		gridBag.gridy = 1;
 		gridBag.gridwidth = 1;
 		settingsPane.add(addDone, gridBag);
-		
-		
-		//close this window and return focus back to the main
-		settingsWindow.addWindowListener(new WindowAdapter(){
+
+		// close this window and return focus back to the main
+		settingsWindow.addWindowListener(new WindowAdapter() {
 			@Override
-			public void windowClosing(WindowEvent e) {
+			public void windowClosing(final WindowEvent e) {
 				window.setEnabled(true);
 			}
 		});
 		settingsWindow.setVisible(true);
 	}
-	
-	//creates control panel
-	public JToolBar createControlPanel() 
-	{	
-		JToolBar controls = new JToolBar();
-		GridBagConstraints gridBag = new GridBagConstraints();	
-		JMenuBar menuBar = new JMenuBar();
-		JMenu menuFile = new JMenu("File");
-		JMenuItem fileOpen = new JMenuItem("Open..."),
-				fileSave = new JMenuItem("Save"),
-				fileSaveAs = new JMenuItem("Save As..."),
-				fileSettings = new JMenuItem("Settings");
 
-		controls.setFloatable(false);
-		controls.setLayout(new GridBagLayout());
-		controls.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-		
-		//menu
-		//open button
-		gridBag.fill = GridBagConstraints.HORIZONTAL;
-		gridBag.weightx = 1;
-		gridBag.gridx = 0;
-		gridBag.gridy = 0;
-		gridBag.gridwidth = 4;
-		fileOpen.setActionCommand("fileOpen");
-		fileOpen.addActionListener(this);
-		menuFile.add(fileOpen);
-		//save button
-		fileSave.setActionCommand("fileSave");
-		fileSave.addActionListener(this);
-		menuFile.add(fileSave);
-		//save as button
-		fileSaveAs.setActionCommand("fileSaveAs");
-		fileSaveAs.addActionListener(this);
-		menuFile.add(fileSaveAs);
-		menuFile.addSeparator();
-		//settings button
-		fileSettings.setActionCommand("fileSettings");
-		fileSettings.addActionListener(this);
-		menuFile.add(fileSettings);
-		menuBar.add(menuFile);
-		if(OS.contains("MAC")) {
-			window.setJMenuBar(menuBar);
-		} else {
-			controls.add(menuBar, gridBag);
+	public void osSpecificOperations() {
+		if (BackupManager.OS.contains("MAC")) {
+			System.setProperty("apple.laf.useScreenMenuBar", "true");
+			System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Name");
 		}
-		
-		//backup button
-		JButton backup = new JButton("backup");		
-	    backup.setActionCommand("backup");
-		backup.addActionListener(this);
-		gridBag.weightx = 1;
-		gridBag.gridx = 0;
-		gridBag.gridy = 1;
-		gridBag.gridwidth = 1;
-		controls.add(backup, gridBag);
-		
-		//revert button
-		JButton revert = new JButton("revert");		
-	    revert.setActionCommand("revert");
-		revert.addActionListener(this);
-		gridBag.gridx = 1;
-		controls.add(revert, gridBag);
-		
-		//add button
-		JButton add = new JButton("add");		
-	    add.setActionCommand("add");
-		add.addActionListener(this);
-		gridBag.gridx = 2;
-		controls.add(add, gridBag);
-		
-		//remove button
-		JButton remove = new JButton("remove");		
-		remove.setActionCommand("remove");
-		remove.addActionListener(this);
-		gridBag.gridx = 3;
-		controls.add(remove, gridBag);	
-
-		return controls;	
-	}
-	
-	
-	//add logic for buttons in here
-    @Override
-	public void actionPerformed(ActionEvent e) {
-        if (e.getActionCommand() == "backup") {
-        	if (config.checkboxStates.size() > 0 && config.checkboxStates.contains(true)){
-        		for (int i = config.checkboxStates.size() - 1; i >= 0; i-- )
-        		{
-        			if (config.checkboxStates.get(i))
-        			{
-        				Backup.backupFile(config.backups.get(i));
-        			}
-        		}
-        	} else {
-        		createErrorWindow("Nothing to backup");
-        	}
-        }
-        else if (e.getActionCommand() == "revert") {
-        	if (config.checkboxStates.size() > 0 && config.checkboxStates.contains(true)){
-        		for (int i = config.checkboxStates.size() - 1; i == 0; i-- )
-        		{
-        			if (config.checkboxStates.get(i))
-        			{
-        				Backup.restoreFile(config.backups.get(i), true);
-        			}
-        		}
-        	} else {
-        		createErrorWindow("Nothing to revert");
-        	}
-        }
-        else if (e.getActionCommand() == "add") {
-        	createAddBackupNameWindow();
-        }
-        else if (e.getActionCommand() == "remove") {
-        	if (config.checkboxStates.size() > 0 && config.checkboxStates.contains(true)){
-        		for (int i = config.checkboxStates.size() - 1; i >= 0; i-- )
-        		{
-        			if (config.checkboxStates.get(i))
-        			{
-        				config.backups.remove(i);
-        				config.checkboxStates.remove(i);
-        			}
-        		}
-				createGUI();
-        	} else {
-        		createErrorWindow("Nothing to delete");
-        	}
-        }
-        
-        //menu items
-        if (e.getActionCommand() == "fileOpen") {
-        	createFileChooserWindow(5, null, 0);
-        } else if (e.getActionCommand() == "fileSave") {
-        	if(configFile != null && configFile.exists()) {
-        		setConfig();
-        	} else {
-        		createFileChooserWindow(6, null, 0);
-        	}
-        } else if (e.getActionCommand() == "fileSaveAs") {
-        	createFileChooserWindow(6, null, 0);
-        } else if (e.getActionCommand() == "fileSettings") {
-        	createSettingsWindow();
-        }
-        
-    }
-    
-    public static void readConfig() {
-    	String text = "{}";
-    	if(configFile != null && configFile.exists()) {
-    		
-	    	try {
-				text = new String(Files.readAllBytes(configFile.toPath()));
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-	    	config = gson.fromJson(text,Configuration.class);
-    	} else {
-    		config = new Configuration();
-    		
-    		//TODO: create a panel to ask the user for the default backup location
-    		config.defaultBackupLocation = fileSearchLocation + File.separator + "Backups" + File.separator;	
-    		if(configFile != null) {
-    			setConfig();
-    		}
-    	}
-    }
-    
-    public static void setConfig() {
-    	try {
-    		File settingsFile = new File(configFile.getAbsolutePath());
-    		File cParent = new File(configFile.getParent());
-    		if(!cParent.exists()) {
-    			Files.createDirectory(cParent.toPath());
-    		}
-    		if(!settingsFile.exists()) {
-    			Files.createFile(settingsFile.toPath());
-    		}
-			FileWriter file = new FileWriter(settingsFile);
-			file.write(gson.toJson(config));
-			file.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-    }
-    
-    public static void setDefaultLocations() {
-		if (OS.contains("WIN")) {
-		    fileSearchLocation = "C:\\Users";
-		} else {
-		    fileSearchLocation = System.getProperty("user.home");
-		}
-    }
-    
-	public static void main(String[] args) {
-		OS = (System.getProperty("os.name")).toUpperCase();
-
-		new BackupManager();
 	}
 
 }
