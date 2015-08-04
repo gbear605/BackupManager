@@ -5,8 +5,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -55,7 +53,8 @@ public class BackupManager implements ActionListener {
 		osSpecificOperations();
 
 		setDefaultLocations();
-		readConfig();
+		
+		config = new Configuration();
 		
 		createGUI();
 
@@ -480,22 +479,26 @@ public class BackupManager implements ActionListener {
 		//function 5 = open backups file
 		//function 6 = save backups file
 		
-		if (function == 1){
+		if (function == 1) {
 			config.backups.add(new BackupFile(file, name));
 			config.checkboxStates.add(false);
-		} else if (function == 2){
+		} else if (function == 2) {
 			config.backups.get(id).setFileLocation(file);
-		} else if (function == 3){
+		} else if (function == 3) {
 			config.backups.get(id).addBackupLocation(file);
 	    	createItemOutputs(id);
-		} else if (function == 4){
+		} else if (function == 4) {
 			config.defaultBackupLocation = file.getAbsolutePath();
         	createSettingsWindow();
-		} else if (function == 5){
+		} else if (function == 5) {
 			configFile = file.getAbsoluteFile();
 			readConfig();
-		} else if (function == 6){
+		} else if (function == 6) {
 			configFile = file.getAbsoluteFile();
+			name = configFile.getName();
+			if(name.length() < 4 || !name.substring(name.length()-5, name.length()).equals(".bkpm")) {
+				configFile = new File(file.getParentFile() + File.separator + name + ".bkpm");
+			}
 			setConfig();
 		}
 		
@@ -722,7 +725,11 @@ public class BackupManager implements ActionListener {
         if (e.getActionCommand() == "fileOpen") {
         	createFileChooserWindow(5, null, 0);
         } else if (e.getActionCommand() == "fileSave") {
-        	setConfig();
+        	if(configFile != null && configFile.exists()) {
+        		setConfig();
+        	} else {
+        		createFileChooserWindow(6, null, 0);
+        	}
         } else if (e.getActionCommand() == "fileSaveAs") {
         	createFileChooserWindow(6, null, 0);
         } else if (e.getActionCommand() == "fileSettings") {
@@ -771,20 +778,11 @@ public class BackupManager implements ActionListener {
     }
     
     public static void setDefaultLocations() {
-		String settingsLocation;
 		if (OS.contains("WIN")) {
-		    settingsLocation = System.getenv("AppData");
 		    fileSearchLocation = "C:\\Users";
 		} else {
-		    settingsLocation = System.getProperty("user.home");
-		    fileSearchLocation = settingsLocation;
-		    if(OS.contains("MAC OS X")) {
-			    settingsLocation += "/Library/Application Support";
-		    }
+		    fileSearchLocation = System.getProperty("user.home");
 		}
-		configFile = new File(settingsLocation + File.separator 
-				             + "BackupManager" + File.separator 
-				             + "settings.bkpm");
     }
     
 	public static void main(String[] args) {
