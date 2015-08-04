@@ -33,6 +33,9 @@ public class Backup {
 			if(to.exists()) {
 				delete(to);
 			}
+			if(!new File(to.getParent()).exists()) {
+				new File(to.getParent()).mkdirs();
+			}
 			Files.copy(from.toPath(), to.toPath(), REPLACE_EXISTING, COPY_ATTRIBUTES);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

@@ -31,6 +31,17 @@ public class BackupManager implements ActionListener {
 	Container Pane;
 	JPanel backupItems;
 	Boolean selectAll = false;
+	
+	//function ADD = add new item based off path and name
+	//function EDIT = edit existing item's input
+	//function ADD_OUTPUT = add new output to existing item
+	//function SET = set default path
+	//function OPEN = open backups file
+	//function SAVE = save backups file
+	
+	public enum fileChoices {
+		ADD, EDIT, ADD_OUTPUT, SET, OPEN, SAVE;
+	}
 
 	public BackupManager() {
 		
@@ -51,11 +62,11 @@ public class BackupManager implements ActionListener {
 		window.setResizable(false);
 		
 		osSpecificOperations();
-
+		
 		setDefaultLocations();
-		
-		config = new Configuration();
-		
+
+		readConfig();		
+
 		createGUI();
 
 		//handles closing
@@ -472,12 +483,7 @@ public class BackupManager implements ActionListener {
 	//changes the list based on the function
 	public void createOrEditListItem(int function, File file, String name, int id)
 	{
-		//function 1 = add new item based off path and name
-		//function 2 = edit existing item's input
-		//function 3 = add new output to existing item
-		//function 4 = set default path
-		//function 5 = open backups file
-		//function 6 = save backups file
+		
 		
 		if (function == 1) {
 			config.backups.add(new BackupFile(file, name));
@@ -740,7 +746,7 @@ public class BackupManager implements ActionListener {
     
     public static void readConfig() {
     	String text = "{}";
-    	if(configFile.exists()) {
+    	if(configFile != null && configFile.exists()) {
     		
 	    	try {
 				text = new String(Files.readAllBytes(configFile.toPath()));
@@ -750,12 +756,12 @@ public class BackupManager implements ActionListener {
 	    	config = gson.fromJson(text,Configuration.class);
     	} else {
     		//TODO: create a panel to ask the user for the default backup location
-    		String defaultBackupLocation = fileSearchLocation + File.separator + "Backups";
 
     		config = new Configuration();
-    		config.defaultBackupLocation = defaultBackupLocation;	
-    		setConfig();
-
+    		config.defaultBackupLocation = fileSearchLocation + File.separator + "Backups" + File.separator;	
+    		if(configFile != null) {
+    			setConfig();
+    		}
     	}
     }
     
