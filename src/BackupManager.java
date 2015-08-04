@@ -17,7 +17,7 @@ import com.google.gson.Gson;
 
 public class BackupManager implements ActionListener {
 
-	public final String version = "0.1";
+	public final String version = "1.0";
 	public static Gson gson = new Gson();
 	
 	// config is the interpreted form of configFile
@@ -408,7 +408,6 @@ public class BackupManager implements ActionListener {
 	//creates a file chooser
 	public void createFileChooserWindow(int function, String fileName, int itemID)
 	{
-		JFrame fileWindow = new JFrame("null");
 		JFileChooser fileChooser = new JFileChooser();
 		
 		window.setEnabled(false);	
@@ -416,39 +415,47 @@ public class BackupManager implements ActionListener {
 		
 		int choice = -1;
 		fileChooser.setCurrentDirectory(new File(fileSearchLocation));
+		fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 
-		if (function == 4){
-			fileChooser.setDialogTitle("Choose default directory");
-			fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-			choice = fileChooser.showSaveDialog(fileWindow);
-		} else if (function == 5){
-				FileFilter bkpmFile = new FileNameExtensionFilter(
-					    "bkpm files", "bkpm");
-				fileChooser.setDialogTitle("Open backup file");
-				fileChooser.addChoosableFileFilter(bkpmFile);
-				fileChooser.setFileFilter(bkpmFile);
-				choice = fileChooser.showOpenDialog(fileWindow);
-		} else{
-			fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-			if (function == 1){
-				fileChooser.setDialogTitle("Add new file or folder to backup");
-				choice = fileChooser.showOpenDialog(fileWindow);
-			} else if (function == 2){
-				fileChooser.setDialogTitle("Change file or folder to backup");
-				choice = fileChooser.showOpenDialog(fileWindow);
-			} else if (function == 3){
+		String dialogTitle = "error";
+		
+		switch(function) {
+			case 1 : {
+				dialogTitle = "Add file or folder to backup";
+				break;
+			} case 2 : {
+				dialogTitle = "Change file or folder to backup";
+				break;
+			} case 3 : {
 				fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-				fileChooser.setDialogTitle("Add folder to backup to");
-				choice = fileChooser.showOpenDialog(fileWindow);
-			} else if (function == 6){
+				dialogTitle = "Add folder to backup to";
+				break;
+			} case 4 : {
+				dialogTitle = "Choose default directory";
+				fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				break;
+			} case 5 : {
 				FileFilter bkpmFile = new FileNameExtensionFilter(
 					    "bkpm files", "bkpm");
-				fileChooser.setDialogTitle("Save backup file");
+				dialogTitle = "Open backup file";
 				fileChooser.addChoosableFileFilter(bkpmFile);
 				fileChooser.setFileFilter(bkpmFile);
-				fileChooser.setApproveButtonText("Backup");
-				choice = fileChooser.showSaveDialog(fileWindow);
+				break;
+			} case 6 : {
+				FileFilter bkpmFile = new FileNameExtensionFilter(
+					    "bkpm files", "bkpm");
+				dialogTitle = "Save backup file";
+				fileChooser.addChoosableFileFilter(bkpmFile);
+				fileChooser.setFileFilter(bkpmFile);
+				break;
 			}
+		}
+		fileChooser.setDialogTitle(dialogTitle);
+
+		if(function == 1 || function == 2 || function == 3 || function == 5) {
+			choice = fileChooser.showOpenDialog(new JFrame("null"));
+		} else if (function == 4 || function == 6) {
+			choice = fileChooser.showSaveDialog(new JFrame("null"));
 		}
 	    
 		window.setEnabled(true);
@@ -488,6 +495,7 @@ public class BackupManager implements ActionListener {
 			configFile = file.getAbsoluteFile();
 			readConfig();
 		} else if (function == 6){
+			configFile = file.getAbsoluteFile();
 			setConfig();
 		}
 		
@@ -717,7 +725,6 @@ public class BackupManager implements ActionListener {
         	setConfig();
         } else if (e.getActionCommand() == "fileSaveAs") {
         	createFileChooserWindow(6, null, 0);
-        	System.out.println(e.getActionCommand());
         } else if (e.getActionCommand() == "fileSettings") {
         	createSettingsWindow();
         }
