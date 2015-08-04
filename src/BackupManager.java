@@ -411,72 +411,53 @@ public class BackupManager implements ActionListener {
 		JFrame fileWindow = new JFrame("null");
 		JFileChooser fileChooser = new JFileChooser();
 		
-		//initialise window and disable main window
-		fileWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE );
-		fileWindow.setSize(500, 300);
-		fileWindow.setResizable(false);
-		fileWindow.setLocationRelativeTo(null);
-		fileWindow.setVisible(true);
 		window.setEnabled(false);	
 		window.toFront();
+		
+		int choice = 0;
+		fileChooser.setCurrentDirectory(new File(fileSearchLocation));
+
 		if (function == 4 || function == 5){
-			if (function == 5){
+			fileChooser.setDialogTitle("Choose default directory");
+			fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			choice = fileChooser.showSaveDialog(fileWindow);
+		} else if (function == 5){
 				FileFilter bkpmFile = new FileNameExtensionFilter(
 					    "bkpm files", "bkpm");
-				fileWindow.setTitle("Open backup file");
+				fileChooser.setDialogTitle("Open backup file");
 				fileChooser.addChoosableFileFilter(bkpmFile);
 				fileChooser.setFileFilter(bkpmFile);
-			}
-			else
-			{
-			fileWindow.setTitle("Choose default directory");
-			fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-			}
+				choice = fileChooser.showOpenDialog(fileWindow);
 		} else{
 			fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 			if (function == 1){
-				fileWindow.setTitle("Add new file or folder to backup");
+				fileChooser.setDialogTitle("Add new file or folder to backup");
+				choice = fileChooser.showOpenDialog(fileWindow);
 			} else if (function == 2){
-				fileWindow.setTitle("Change file or folder to backup");
+				fileChooser.setDialogTitle("Change file or folder to backup");
+				choice = fileChooser.showOpenDialog(fileWindow);
 			} else if (function == 3){
-				fileWindow.setTitle("Add folder to backup to");
+				fileChooser.setDialogTitle("Add folder to backup to");
+				choice = fileChooser.showOpenDialog(fileWindow);
 			} else if (function == 6){
 				FileFilter bkpmFile = new FileNameExtensionFilter(
 					    "bkpm files", "bkpm");
-				fileWindow.setTitle("Save backup file");
+				fileChooser.setDialogTitle("Save backup file");
 				fileChooser.addChoosableFileFilter(bkpmFile);
 				fileChooser.setFileFilter(bkpmFile);
+				fileChooser.setApproveButtonText("Backup");
+				choice = fileChooser.showSaveDialog(fileWindow);
 			}
 		}
-		fileChooser.setApproveButtonText("Backup");
-		fileChooser.setCurrentDirectory(new File(fileSearchLocation));
-  		//add file chooser to the window
-  		fileWindow.add(fileChooser);
-		
+	    
+		window.setEnabled(true);
+		window.toFront();
+
 		//handles the buttons on the file chooser
-		fileChooser.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (e.getActionCommand() == "ApproveSelection")
-				{
-					createOrEditListItem(function, fileChooser.getSelectedFile(), fileName, itemID);
-				    window.setEnabled(true);
-			 		fileWindow.dispose();
-				}
-				else if (e.getActionCommand() == "CancelSelection")
-				{
-	        	  	window.setEnabled(true);
-	        	  	fileWindow.dispose();
-				}
-	        }
-		});
-				
-		fileWindow.addWindowListener(new WindowAdapter(){
-			@Override
-			public void windowClosing(WindowEvent e) {
-				window.setEnabled(true);
-			}
-		});
+		if(choice == JFileChooser.APPROVE_OPTION) {
+			createOrEditListItem(function, fileChooser.getSelectedFile(), fileName, itemID);
+		} else if (choice == JFileChooser.CANCEL_OPTION) {
+		}
 	}
 	
 	//changes the list based on the function

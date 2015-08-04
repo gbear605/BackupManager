@@ -11,7 +11,6 @@ public class BackupFile {
 		name = _name;
 		fileLocation = _fileLocation;
 		backupLocations.add(new File(BackupManager.config.defaultBackupLocation + _fileLocation.getName()));
-		System.out.println(backupLocations.get(0).getAbsolutePath());
 		
 	}
 
