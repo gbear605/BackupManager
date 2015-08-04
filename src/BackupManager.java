@@ -115,14 +115,6 @@ public class BackupManager implements ActionListener {
 		window.revalidate();
 	}
 	
-	public JMenuBar makeJMenuBarMac() {
-		JMenuBar menuBar = new JMenuBar();
-		JMenu fileMenu = new JMenu("File");
-        menuBar.add(fileMenu);
-
-		return menuBar;
-	}
-	
 	//creates and populates the list
 	public Component createItemList(int offset)
 	{
@@ -509,6 +501,7 @@ public class BackupManager implements ActionListener {
 			config.defaultBackupLocation = file.getAbsolutePath();
         	createSettingsWindow();
 		} else if (function == 5){
+			configFile = file.getAbsoluteFile();
 			readConfig();
 		} else if (function == 6){
 			setConfig();
