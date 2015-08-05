@@ -152,8 +152,8 @@ public class BackupManager implements ActionListener {
 
 	public void listAction(int function){
 		//function 1 = backup
-		//function 2 = delete
-		//function 3 = restore
+		//function 2 = remove
+		//function 3 = revert
 		switch (function){	
 		case 1 :
 			for (int i = checkboxStates.size() - 1; i >= 0; i--) {
@@ -168,6 +168,7 @@ public class BackupManager implements ActionListener {
 				if (checkboxStates.get(i)) {
 					config.backups.remove(i);
 					checkboxStates.remove(i);
+					createGUI();
 				}
 			}
 		break;
@@ -200,7 +201,7 @@ public class BackupManager implements ActionListener {
 			
 		case "revert": 		
 			if (isSelected){
-				createErrorWindow("Are you sure you'd like to revert ", 1, 1);
+				createErrorWindow("Are you sure you'd like to revert ", 1, 3);
 			} else {
 				createErrorWindow("Nothing to revert", 2, 0);
 			}
@@ -208,8 +209,7 @@ public class BackupManager implements ActionListener {
 			
 		case "remove" : 
 			if (isSelected){
-				createErrorWindow("Are you sure you'd like to remove ", 1, 1);
-				createGUI();
+				createErrorWindow("Are you sure you'd like to remove ", 1, 2);
 			} else {
 				createErrorWindow("Nothing to remove", 2, 0);
 			}
@@ -422,12 +422,6 @@ public class BackupManager implements ActionListener {
 			
 			JButton yesButton = new JButton("Yes"), noButton = new JButton("No");
 			Box errorBox = Box.createHorizontalBox();
-			noButton.addActionListener(e -> {
-				errorWindow.dispose();
-				window.setEnabled(true);
-				window.toFront();
-			});
-			errorBox.add(noButton);
 			yesButton.addActionListener(e -> {
 				listAction(function);
 				errorWindow.dispose();
@@ -435,6 +429,13 @@ public class BackupManager implements ActionListener {
 				window.toFront();
 			});
 			errorBox.add(yesButton);
+			noButton.addActionListener(e -> {
+				errorWindow.dispose();
+				window.setEnabled(true);
+				window.toFront();
+			});
+			errorBox.add(noButton);
+
 			errorPane.add(errorBox);
 		} else {
 			errorPane.add(errorMessage);
@@ -531,7 +532,7 @@ public class BackupManager implements ActionListener {
 			gridBag.fill = GridBagConstraints.BOTH;
 			gridBag.weighty = 1;
 			gridBag.gridy = 1;
-			Pane.add(createItemList(0), gridBag);
+			Pane.add(createItemList(), gridBag);
 		} else {
 
 			// adds control panel and backup list to main window
@@ -546,7 +547,7 @@ public class BackupManager implements ActionListener {
 			gridBag.fill = GridBagConstraints.BOTH;
 			gridBag.weighty = 1;
 			gridBag.gridy = 1;
-			Pane.add(createItemList(0), gridBag);
+			Pane.add(createItemList(), gridBag);
 
 		}
 
@@ -554,7 +555,7 @@ public class BackupManager implements ActionListener {
 	}
 
 	// creates and populates the list
-	public Component createItemList(final int offset) {
+	public Component createItemList() {
 		final Box listBox = Box.createVerticalBox(), boxBox = Box.createVerticalBox();
 		int count = 0;
 
@@ -705,7 +706,7 @@ public class BackupManager implements ActionListener {
 		switch (function) {
 		case ADD:
 			config.backups.add(new BackupFile(file, name));
-			checkboxStates.add(false);
+			checkboxStates.add(selectAll);
 			break;
 		case EDIT:
 			config.backups.get(id).setFileLocation(file);
@@ -716,6 +717,7 @@ public class BackupManager implements ActionListener {
 			break;
 		case SET:
 			config.defaultBackupLocation = file.getAbsolutePath();
+			fileSearchLocation = config.defaultBackupLocation;
 			createSettingsWindow();
 			break;
 		case OPEN:
