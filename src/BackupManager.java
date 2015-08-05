@@ -667,7 +667,7 @@ public class BackupManager implements ActionListener {
 		case SAVE:
 			configFile = file.getAbsoluteFile();
 			name = configFile.getName();
-			if (name.length() < 4 || !name.substring(name.length() - 5, name.length()).equals(".bkpm")) {
+			if (name.length() < 5 || !name.substring(name.length() - 5, name.length()).equals(".bkpm")) {
 				configFile = new File(file.getParentFile() + File.separator + name + ".bkpm");
 			}
 			saveConfig();
