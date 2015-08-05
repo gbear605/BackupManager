@@ -24,8 +24,6 @@ where settings file is an optional input that is a file of type .bkpm that was m
 ## Planned future functionality
 - Warning messages before quitting and backing up
 
-- Ask the user for a default backup location on first launch instead of a hardcoded default
-
 ## Possible future functionality
 - Runs on a specified time every day/week/month/etc.
 
