@@ -150,6 +150,39 @@ public class BackupManager implements ActionListener {
 		}
 	}
 
+	public void listAction(int function){
+		//function 1 = backup
+		//function 2 = delete
+		//function 3 = restore
+		switch (function){	
+		case 1 :
+			for (int i = checkboxStates.size() - 1; i >= 0; i--) {
+				if (checkboxStates.get(i)) {
+					Backup.backupFile(BackupManager.config.backups.get(i));
+				}
+			}
+			break;
+			
+		case 2 :
+			for (int i = checkboxStates.size() - 1; i >= 0; i--) {
+				if (checkboxStates.get(i)) {
+					config.backups.remove(i);
+					checkboxStates.remove(i);
+				}
+			}
+		break;
+			
+		case 3 :
+			for (int i = checkboxStates.size() - 1; i == 0; i--) {
+				if (checkboxStates.get(i)) {
+					Backup.restoreFile(config.backups.get(i), true);
+				}
+			}
+		break;
+		
+		}
+	}
+	
 	// add logic for buttons in here
 	@Override
 	public void actionPerformed(final ActionEvent e) {
@@ -158,42 +191,32 @@ public class BackupManager implements ActionListener {
 		switch(function){
 		//toolbar items
 		case "backup": 
-			if (isSelected) {
-				for (int i = checkboxStates.size() - 1; i >= 0; i--) {
-					if (checkboxStates.get(i)) {
-						Backup.backupFile(BackupManager.config.backups.get(i));
-					}
-				}
+			if (isSelected){
+				createErrorWindow("Are you sure you'd like to backup ", 1, 1);
 			} else {
-				createErrorWindow("Nothing to backup");
+				createErrorWindow("Nothing to backup", 2, 0);
 			}
 			break;
-		case "revert":
-			if (isSelected) {
-				for (int i = checkboxStates.size() - 1; i == 0; i--) {
-					if (checkboxStates.get(i)) {
-						Backup.restoreFile(config.backups.get(i), true);
-					}
-				}
+			
+		case "revert": 		
+			if (isSelected){
+				createErrorWindow("Are you sure you'd like to revert ", 1, 1);
 			} else {
-				createErrorWindow("Nothing to revert");
+				createErrorWindow("Nothing to revert", 2, 0);
 			}
 			break;
-		case "add" : createAddBackupNameWindow();
-			break;
-		case "remove" :
-			if (isSelected) {
-				for (int i = checkboxStates.size() - 1; i >= 0; i--) {
-					if (checkboxStates.get(i)) {
-						config.backups.remove(i);
-						checkboxStates.remove(i);
-					}
-				}
+			
+		case "remove" : 
+			if (isSelected){
+				createErrorWindow("Are you sure you'd like to remove ", 1, 1);
 				createGUI();
 			} else {
-				createErrorWindow("Nothing to delete");
+				createErrorWindow("Nothing to remove", 2, 0);
 			}
 			break;
+			
+		case "add" : createAddBackupNameWindow();
+		break;
 		//menu items
 		case "fileOpen" : createFileChooserWindow(fileChoice.OPEN, null, 0);
 		break;
@@ -354,7 +377,7 @@ public class BackupManager implements ActionListener {
 	}
 
 	// creates error pop-up with specified message
-	public void createErrorWindow(final String error) {
+	public void createErrorWindow(final String error, int type, int function) {
 		final JFrame errorWindow = new JFrame("Error");
 		Container errorPane = new Container();
 		final JButton errorButton = new JButton("Okay");
@@ -377,11 +400,47 @@ public class BackupManager implements ActionListener {
 			window.setEnabled(true);
 			window.toFront();
 		});
+		
+		//type 1 = yes/no error
+		//type 2 = okay error
+		if (type == 1){
 
-		// adds buttons to pane
-		errorPane.add(errorMessage);
-		errorPane.add(errorButton);
+			int count = 0;
+			for (int i = checkboxStates.size() - 1; i >= 0; i--) {
+				if (checkboxStates.get(i)) {
+					count++;
+				}
+			}
+			// adds error message to pane
+			if (count == 1){
+				errorMessage.setText(error + count + " item?");
+			} else {
+				errorMessage.setText(error + count + " items?");
+			}
 
+			errorPane.add(errorMessage);
+			
+			JButton yesButton = new JButton("Yes"), noButton = new JButton("No");
+			Box errorBox = Box.createHorizontalBox();
+			noButton.addActionListener(e -> {
+				errorWindow.dispose();
+				window.setEnabled(true);
+				window.toFront();
+			});
+			errorBox.add(noButton);
+			yesButton.addActionListener(e -> {
+				listAction(function);
+				errorWindow.dispose();
+				window.setEnabled(true);
+				window.toFront();
+			});
+			errorBox.add(yesButton);
+			errorPane.add(errorBox);
+		} else {
+			errorPane.add(errorMessage);
+			errorPane.add(errorButton);
+		}
+		
 		errorWindow.setVisible(true);
 
 		// close this window and return focus back to the main
@@ -617,8 +676,7 @@ public class BackupManager implements ActionListener {
 		// sets up the name label
 		name.setBorder(new EmptyBorder(5, 5, 5, 0));
 		name.setPreferredSize(new Dimension(100, 0));
-
-		setDelete.setSelected(checkboxStates.get(count));
+		setDelete.setSelected(selectAll);
 		setDelete.addItemListener(e -> {
 			if (setDelete.isSelected()) {
 				checkboxStates.set(count, true);
