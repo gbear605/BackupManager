@@ -31,8 +31,27 @@ public class BackupManager implements ActionListener {
 
 	public static void main(final String[] args) {
 		BackupManager.OS = System.getProperty("os.name").toUpperCase();
-
+		if(args.length > 0) {
+			takeInInput(args[0]);
+		}
 		new BackupManager();
+	}
+	
+	public static void takeInInput(String inputString) {
+		File input = new File(inputString);
+		File f = new File(System.getProperty("java.class.path"));
+		File dir = f.getAbsoluteFile().getParentFile();
+		String path = dir.toString();
+		File inputLocal = new File(path + File.separator + inputString);
+		if(input.exists()) {
+			configFile = input;
+		}
+		if(inputLocal.exists()) {
+			configFile = inputLocal;
+		}
+		if(configFile == null) {
+			System.out.println(inputString + " does not exist");
+		}
 	}
 
 	public static void readConfig() {
@@ -50,8 +69,8 @@ public class BackupManager implements ActionListener {
 
 			// TODO: create a panel to ask the user for the default backup
 			// location
-			BackupManager.config.defaultBackupLocation = BackupManager.fileSearchLocation + File.separator + "Backups"
-					+ File.separator;
+			BackupManager.config.defaultBackupLocation = BackupManager.fileSearchLocation 
+					+ File.separator + "Backups" + File.separator;
 			if (BackupManager.configFile != null) {
 				BackupManager.setConfig();
 			}
