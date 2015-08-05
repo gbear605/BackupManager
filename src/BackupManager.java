@@ -402,15 +402,16 @@ public class BackupManager implements ActionListener {
 
 		int choice = -1;
 		fileChooser.setCurrentDirectory(new File(BackupManager.fileSearchLocation));
-		fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 
 		String dialogTitle = "error";
 
 		switch (function) {
 		case ADD:
+			fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 			dialogTitle = "Add file or folder to backup";
 			break;
 		case EDIT:
+			fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 			dialogTitle = "Change file or folder to backup";
 			break;
 		case ADD_OUTPUT:
@@ -448,10 +449,9 @@ public class BackupManager implements ActionListener {
 			choice = fileChooser.showSaveDialog(new JFrame("null"));
 			break;
 		}
-
+		
 		window.setEnabled(true);
 		window.toFront();
-
 		// handles the buttons on the file chooser
 		if (choice == JFileChooser.APPROVE_OPTION) {
 			createOrEditListItem(function, fileChooser.getSelectedFile(), fileName, itemID);
