@@ -21,9 +21,6 @@ where settings file is an optional input that is a file of type .bkpm that was m
 
 - Can take in a settings file when launched from the command line
 
-## Planned future functionality
-- Warning messages before quitting and backing up
-
 ## Possible future functionality
 - Runs on a specified time every day/week/month/etc.
 
