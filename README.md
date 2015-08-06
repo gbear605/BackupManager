@@ -1,4 +1,4 @@
-# BackupManager 1.0
+# BackupManager 1.0.0
 A simple backup manager made in Java
 
 ## Use
