@@ -25,10 +25,17 @@ where settings file is an optional input that is a file of type .bkpm that was m
 
 - Can take in a settings file when launched from the command line
 
-## Possible future functionality
+## Planned features
+- Icons
+
+- Progress bar
+
+- All the backups should go into a new folder named after the .bkpm filename (say backups.bkpm) with the date and time appended to the end
+
+## Possible future features
 - Runs on a specified time every day/week/month/etc.
 
-- Can be run from the command line
+- Can be run exclusively from the command line
 
 - Compresses saves
 
