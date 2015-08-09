@@ -10,7 +10,8 @@ public class BackupFile {
 	public BackupFile(final File _fileLocation, final String _name) {
 		name = _name;
 		fileLocation = _fileLocation;
-		backupLocations.add(new File(BackupManager.config.defaultBackupLocation + _fileLocation.getName()));
+		backupLocations.add(new File(BackupManager.config.defaultBackupLocation + name 
+				+ File.separator + _fileLocation.getName()));
 
 	}
 

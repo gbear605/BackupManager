@@ -1,5 +1,9 @@
-# BackupManager 1.0.0
+# BackupManager
 A simple backup manager made in Java
+
+# Version
+Current Release: 1.0.0
+In progress: 1.1.0
 
 ## Use
 Launch by running the provided jar file, or by running 
