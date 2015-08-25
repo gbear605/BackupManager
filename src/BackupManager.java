@@ -30,7 +30,9 @@ public class BackupManager implements ActionListener {
 	// config is the interpreted form of configFile
 	public static File configFile;
 	public static Configuration config;
+	
 	public static ArrayList<Boolean> checkboxStates = new ArrayList<Boolean>();
+	
 	public static String fileSearchLocation;
 	public static String defaultLocation;
 
@@ -55,16 +57,16 @@ public class BackupManager implements ActionListener {
 		File input = new File(inputString);
 		File inputLocal = new File(new File(System.getProperty("java.class.path")).getAbsoluteFile().getParentFile().toString()
 				+ File.separator + inputString);
-		System.out.println(inputLocal + "\n" + input);
+		
 		if(input.exists()) {
 			return input;
 		}
 		if(inputLocal.exists()) {
 			return inputLocal;
-		} else {
-			System.out.println(inputString + " does not exist");
-			return null;
 		}
+		
+		System.out.println(inputString + " does not exist");
+		return null;
 	}
 
 	public static void openConfig() {
@@ -100,11 +102,7 @@ public class BackupManager implements ActionListener {
 	}
 
 	public static void setDefaultLocations() {
-		if (OS.contains("WIN")) {
-			fileSearchLocation = "C:\\Users";
-		} else {
-			fileSearchLocation = System.getProperty("user.home");
-		}
+		fileSearchLocation = System.getProperty("user.home");
 		config.defaultBackupLocation = fileSearchLocation 
 				+ File.separator + "Backups" + File.separator;
 	}
@@ -144,14 +142,13 @@ public class BackupManager implements ActionListener {
 		window.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(final WindowEvent e) {
-				System.exit(0);
 				window.dispose();
 			}
 		});
+		
 		window.setVisible(true);
-		if (configFile == null){
-			createSettingsWindow();
-		}
+		
+		createSettingsWindow();
 	}
 
 	// add logic for buttons in here
