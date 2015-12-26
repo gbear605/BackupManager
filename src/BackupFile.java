@@ -2,7 +2,6 @@ import java.io.File;
 import java.util.ArrayList;
 
 public class BackupFile {
-	// test
 	String name;
 	File fileLocation;
 	ArrayList<File> backupLocations = new ArrayList<File>(1);
@@ -10,7 +9,7 @@ public class BackupFile {
 	public BackupFile(final File _fileLocation, final String _name) {
 		name = _name;
 		fileLocation = _fileLocation;
-		backupLocations.add(new File(BackupManager.config.defaultBackupLocation + name 
+		backupLocations.add(new File(BackupManager.configFile.getDefaultBackupLocation() + name 
 				+ File.separator + _fileLocation.getName()));
 
 	}

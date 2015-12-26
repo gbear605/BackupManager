@@ -28,27 +28,25 @@ public class BackupManager implements ActionListener {
 	public static Gson gson = new Gson();
 
 	// config is the interpreted form of configFile
-	public static File configFile;
-	public static Configuration config;
+	public static ConfigFile configFile;
 	
 	public static ArrayList<Boolean> checkboxStates = new ArrayList<Boolean>();
 	
-	public static String fileSearchLocation;
-	public static String defaultLocation;
 
 	public static String OS;
 
 	public static void main(final String[] args) {
 		BackupManager.OS = System.getProperty("os.name").toUpperCase();
+		configFile = new ConfigFile();
 		//if it has been opened via a file
 		if(args.length > 0) {
-			configFile = takeInInput(args[0]);
+			configFile.setFile(takeInInput(args[0]));
 			openConfig();
 		} 
 		//if it has been opened via the .exe
 		else {
-			config = new Configuration();
-			setDefaultLocations();
+			configFile.setConfig(new Configuration());
+			configFile.setGenericDefaultBackupLocation();
 		}
 		new BackupManager();
 	}
@@ -72,39 +70,32 @@ public class BackupManager implements ActionListener {
 	public static void openConfig() {
 		String text = "{}";
 		try {
-			text = new String(Files.readAllBytes(configFile.toPath()));
+			text = new String(Files.readAllBytes(configFile.getFile().toPath()));
 		} catch (final IOException e) {
 			e.printStackTrace();
 		}
-		config = gson.fromJson(text, Configuration.class);
+		configFile.setConfig( gson.fromJson(text, Configuration.class));
 		checkboxStates = new ArrayList<Boolean>();
-		for(int i = 0; i < config.backups.size(); i++) {
+		for(int i = 0; i < configFile.getConfig().backups.size(); i++) {
 			checkboxStates.add(false);
 		}
 	}
 	
 	public static void saveConfig() {
 		try {
-			final File settingsFile = new File(configFile.getAbsolutePath());
-			final File cParent = new File(configFile.getParent());
-			if (!cParent.exists()) {
-				Files.createDirectory(cParent.toPath());
+			final File settingsFile = new File(configFile.getAbsolutePathString());
+			if (configFile.getParent() == null || !configFile.getParent().exists()) {
+				Files.createDirectory(configFile.getAbsoluteParentPath());
 			}
 			if (!settingsFile.exists()) {
-				Files.createFile(settingsFile.toPath());
+				Files.createFile(configFile.getAbsolutePath());
 			}
 			final FileWriter file = new FileWriter(settingsFile);
-			file.write(gson.toJson(config));
+			file.write(gson.toJson(configFile.getConfig()));
 			file.close();
 		} catch (final IOException e) {
 			e.printStackTrace();
 		}
-	}
-
-	public static void setDefaultLocations() {
-		fileSearchLocation = System.getProperty("user.home");
-		config.defaultBackupLocation = fileSearchLocation 
-				+ File.separator + "Backups" + File.separator;
 	}
 
 	public final String version = "1.0";
@@ -162,7 +153,7 @@ public class BackupManager implements ActionListener {
 			if (isSelected) {
 				for (int i = checkboxStates.size() - 1; i >= 0; i--) {
 					if (checkboxStates.get(i)) {
-						Backup.backupFile(BackupManager.config.backups.get(i));
+						Backup.backupFile(configFile.getConfig().backups.get(i));
 					}
 				}
 			} else {
@@ -173,7 +164,7 @@ public class BackupManager implements ActionListener {
 			if (isSelected) {
 				for (int i = checkboxStates.size() - 1; i == 0; i--) {
 					if (checkboxStates.get(i)) {
-						Backup.restoreFile(config.backups.get(i), true);
+						Backup.restoreFile(configFile.getConfig().backups.get(i), true);
 					}
 				}
 			} else {
@@ -186,7 +177,7 @@ public class BackupManager implements ActionListener {
 			if (isSelected) {
 				for (int i = checkboxStates.size() - 1; i >= 0; i--) {
 					if (checkboxStates.get(i)) {
-						config.backups.remove(i);
+						configFile.getConfig().backups.remove(i);
 						checkboxStates.remove(i);
 					}
 				}
@@ -199,7 +190,7 @@ public class BackupManager implements ActionListener {
 		case "fileOpen" : createFileChooserWindow(fileChoice.OPEN, null, 0);
 		break;
 		case "fileSave" : 
-			if (BackupManager.configFile != null && BackupManager.configFile.exists()) {
+			if (BackupManager.configFile.getFile() != null && BackupManager.configFile.getFile().exists()) {
 				BackupManager.saveConfig();
 			} else {
 				createFileChooserWindow(fileChoice.SAVE, null, 0);
@@ -402,7 +393,7 @@ public class BackupManager implements ActionListener {
 		window.toFront();
 
 		int choice = -1;
-		fileChooser.setCurrentDirectory(new File(BackupManager.fileSearchLocation));
+		fileChooser.setCurrentDirectory(new File(configFile.getFileSearchLocation()));
 
 		String dialogTitle = "error";
 
@@ -503,7 +494,7 @@ public class BackupManager implements ActionListener {
 		boxBox.setBorder(BorderFactory.createCompoundBorder(new EmptyBorder(5, 5, 5, 5), new LineBorder(Color.BLACK)));
 		boxBox.add(createListHeader());
 
-		for (final BackupFile file : BackupManager.config.backups) {
+		for (final BackupFile file : BackupManager.configFile.getConfig().backups) {
 			listBox.add(createListItem(file.name, file.fileLocation.toString(), count));
 			count++;
 		}
@@ -531,7 +522,7 @@ public class BackupManager implements ActionListener {
 		outputPane.setLayout(new BoxLayout(outputPane, BoxLayout.PAGE_AXIS));
 
 		outputAdd.addActionListener(e -> {
-			createFileChooserWindow(fileChoice.ADD_OUTPUT, BackupManager.config.backups.get(id).name, id);
+			createFileChooserWindow(fileChoice.ADD_OUTPUT, configFile.getConfig().backups.get(id).name, id);
 			outputWindow.dispose();
 
 		});
@@ -539,10 +530,10 @@ public class BackupManager implements ActionListener {
 		outputAdd.setAlignmentX(Component.CENTER_ALIGNMENT);
 		outputPane.add(outputAdd);
 
-		for (int i = 0; i < BackupManager.config.backups.get(id).backupLocations.size(); i++) {
+		for (int i = 0; i < configFile.getConfig().backups.get(id).backupLocations.size(); i++) {
 			final Box itemBox = Box.createHorizontalBox();
 			final JLabel labelBox = new JLabel(
-					BackupManager.config.backups.get(id).getBackupLocations().get(i).getPath());
+					configFile.getConfig().backups.get(id).getBackupLocations().get(i).getPath());
 			final JButton removeButton = new JButton("Remove");
 
 			final int count = i;
@@ -552,7 +543,7 @@ public class BackupManager implements ActionListener {
 			itemBox.add(labelBox);
 			itemBox.add(Box.createHorizontalGlue());
 			removeButton.addActionListener(e -> {
-				BackupManager.config.backups.get(id).backupLocations.remove(count);
+				configFile.getConfig().backups.get(id).backupLocations.remove(count);
 				outputWindow.dispose();
 				window.toFront();
 				createItemOutputs(id);
@@ -647,29 +638,29 @@ public class BackupManager implements ActionListener {
 	public void createOrEditListItem(final fileChoice function, final File file, String name, final int id) {
 		switch (function) {
 		case ADD:
-			config.backups.add(new BackupFile(file, name));
+			configFile.getBackups().add(new BackupFile(file, name));
 			checkboxStates.add(false);
 			break;
 		case EDIT:
-			config.backups.get(id).setFileLocation(file);
+			configFile.getBackups().get(id).setFileLocation(file);
 			break;
 		case ADD_OUTPUT:
-			config.backups.get(id).addBackupLocation(file);
+			configFile.getBackups().get(id).addBackupLocation(file);
 			createItemOutputs(id);
 			break;
 		case SET:
-			config.defaultBackupLocation = file.getAbsolutePath();
+			configFile.setDefaultBackupLocation(file.getAbsolutePath());
 			createSettingsWindow();
 			break;
 		case OPEN:
-			configFile = file.getAbsoluteFile();
+			configFile.setFile(file.getAbsoluteFile());
 			openConfig();
 			break;
 		case SAVE:
-			configFile = file.getAbsoluteFile();
-			name = configFile.getName();
+			configFile.setFile(file.getAbsoluteFile());
+			name = configFile.getFile().getName();
 			if (name.length() < 5 || !name.substring(name.length() - 5, name.length()).equals(".bkpm")) {
-				configFile = new File(file.getParentFile() + File.separator + name + ".bkpm");
+				configFile.setFile(new File(file.getParentFile() + File.separator + name + ".bkpm"));
 			}
 			saveConfig();
 			break;
@@ -700,7 +691,7 @@ public class BackupManager implements ActionListener {
 		padding.add(new JLabel("Default path :"));
 		// file path textbox
 		final JTextPane filePath = new JTextPane();
-		filePath.setText(config.defaultBackupLocation);
+		filePath.setText(configFile.getDefaultBackupLocation());
 		gridBag.weightx = 1;
 		gridBag.gridx = 1;
 		gridBag.gridwidth = 3;
@@ -711,7 +702,7 @@ public class BackupManager implements ActionListener {
 			settingsWindow.dispose();
 
 			createFileChooserWindow(fileChoice.SET, null, 0);
-			filePath.setText(config.defaultBackupLocation);
+			filePath.setText(configFile.getDefaultBackupLocation());
 
 		});
 		gridBag.weightx = 0;
@@ -726,9 +717,9 @@ public class BackupManager implements ActionListener {
 			window.toFront();
 			final String path = filePath.getText();
 			if (!path.substring(path.length() - 1, path.length()).equals(File.separator)) {
-				config.defaultBackupLocation = path + File.separator;
+				configFile.setDefaultBackupLocation(path + File.separator);
 			} else {
-				config.defaultBackupLocation = path;
+				configFile.setDefaultBackupLocation(path);
 			}
 		});
 		gridBag.weightx = 0;
